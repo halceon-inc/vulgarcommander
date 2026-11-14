@@ -1,0 +1,267 @@
+<div id="globe-vignette"></div>
+<div id="globe-pin" class="globe-pin">
+	<svg viewBox="0 0 24 36" aria-hidden="true">
+		<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z"></path>
+		<circle cx="12" cy="12" r="4.5"></circle>
+	</svg>
+</div>
+<div id="hex-panel" hidden>
+	<div class="hex-grid">
+		<button type="button" class="hex-cell" data-slot="0" style="--q: 1; --r: 0"></button>
+		<button type="button" class="hex-cell" data-slot="1" style="--q: 1; --r: -1"></button>
+		<button type="button" class="hex-cell" data-slot="2" style="--q: 0; --r: -1"></button>
+		<button type="button" class="hex-cell" data-slot="3" style="--q: -1; --r: 0"></button>
+		<button type="button" class="hex-cell" data-slot="4" style="--q: -1; --r: 1"></button>
+		<button type="button" class="hex-cell" data-slot="5" style="--q: 0; --r: 1"></button>
+	</div>
+</div>
+<aside id="location-hud" aria-live="polite">
+	<span id="location-name">Click the globe</span>
+	<button type="button" id="globe-reset" hidden>Reset view</button>
+</aside>
+
+<style is:global>
+	#globe-vignette {
+		position: fixed;
+		inset: 0;
+		pointer-events: none;
+		z-index: 1;
+		background: radial-gradient(
+			ellipse 72% 66% at 50% 48%,
+			transparent 58%,
+			rgba(2, 4, 12, 0.22) 78%,
+			rgba(2, 4, 12, 0.76) 100%
+		);
+		transition: opacity 0.6s ease;
+	}
+
+	#globe-vignette.is-close {
+		opacity: 0.28;
+	}
+
+	.globe-pin {
+		width: 28px;
+		height: 42px;
+		visibility: hidden;
+		cursor: grab;
+		filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.45));
+	}
+
+	#globe .globe-pin {
+		visibility: visible;
+	}
+
+	.globe-pin svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+		overflow: visible;
+	}
+
+	.globe-pin path {
+		fill: #e85d4c;
+		stroke: #fff;
+		stroke-width: 1.25;
+		paint-order: stroke fill;
+	}
+
+	.globe-pin circle {
+		fill: #fff;
+	}
+
+	#location-hud {
+		position: fixed;
+		z-index: 10;
+		left: 1.1rem;
+		bottom: 1.1rem;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.55rem 0.6rem 0.55rem 0.95rem;
+		background: rgba(6, 10, 20, 0.58);
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		border-radius: 999px;
+		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+		backdrop-filter: blur(14px);
+		font: 500 13px/1.2 ui-sans-serif, system-ui, sans-serif;
+		letter-spacing: 0.03em;
+	}
+
+	#globe-reset {
+		appearance: none;
+		margin: 0;
+		padding: 0.35rem 0.7rem;
+		border: 0;
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.1);
+		color: inherit;
+		font: inherit;
+		letter-spacing: 0.04em;
+		cursor: pointer;
+	}
+
+	#globe-reset:hover {
+		background: rgba(255, 255, 255, 0.18);
+	}
+
+	/* Screen-space hex slot UI (pointy-top honeycomb) */
+	#hex-panel {
+		/* --hex-size = vertex-to-vertex height */
+		--hex-size: min(26vmin, 32vmax);
+		--hex-gap: 1.22;
+		position: fixed;
+		inset: 0;
+		z-index: 8;
+		display: grid;
+		place-items: center;
+		pointer-events: none;
+	}
+
+	#hex-panel[hidden] {
+		display: none;
+	}
+
+	.hex-grid {
+		position: relative;
+		width: calc(var(--hex-size) * 2.85 * var(--hex-gap));
+		height: calc(var(--hex-size) * 3.1 * var(--hex-gap));
+		pointer-events: none;
+	}
+
+	.hex-cell {
+		/* pointy-top axial → pixel */
+		--x: calc(
+			(var(--q) + var(--r) * 0.5) * var(--hex-size) * 0.8660254 * var(--hex-gap)
+		);
+		--y: calc(var(--r) * 0.75 * var(--hex-size) * var(--hex-gap));
+		--i: 0;
+		appearance: none;
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: calc(var(--hex-size) * 0.8660254);
+		height: var(--hex-size);
+		margin: 0;
+		padding: 0;
+		border: 1px solid rgba(196, 200, 206, 0.85);
+		background: #5c6168;
+		color: #e8eef7;
+		cursor: pointer;
+		pointer-events: auto;
+		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+		opacity: 0;
+		transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(0.55);
+		transition: background 0.15s ease, border-color 0.15s ease;
+	}
+
+	.hex-cell:nth-child(1) {
+		--i: 0;
+	}
+	.hex-cell:nth-child(2) {
+		--i: 1;
+	}
+	.hex-cell:nth-child(3) {
+		--i: 2;
+	}
+	.hex-cell:nth-child(4) {
+		--i: 3;
+	}
+	.hex-cell:nth-child(5) {
+		--i: 4;
+	}
+	.hex-cell:nth-child(6) {
+		--i: 5;
+	}
+
+	#hex-panel.is-in .hex-cell {
+		animation: hex-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+		animation-delay: calc(var(--i) * 70ms);
+	}
+
+	/* Lock final pose so hover doesn't restart the enter animation */
+	#hex-panel.is-settled .hex-cell {
+		animation: none;
+		opacity: 1;
+		transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1);
+		transition:
+			background 0.15s ease,
+			border-color 0.15s ease,
+			transform 0.15s ease;
+	}
+
+	#hex-panel.is-settled .hex-cell:hover,
+	#hex-panel.is-settled .hex-cell:focus-visible {
+		background: #6e747c;
+		border-color: #e8eef7;
+		outline: none;
+		transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1.04);
+	}
+
+	@keyframes hex-in {
+		from {
+			opacity: 0;
+			transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(0.55);
+		}
+		to {
+			opacity: 1;
+			transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1);
+		}
+	}
+</style>
+
+<script>
+	import { requestReset, watchHex, watchStatus, watchVignette } from "./globe-ui";
+
+	const vignette = document.getElementById("globe-vignette")!;
+	const nameEl = document.getElementById("location-name")!;
+	const resetBtn = document.getElementById("globe-reset") as HTMLButtonElement;
+	const hexPanel = document.getElementById("hex-panel")!;
+	const hexCells = [...hexPanel.querySelectorAll<HTMLElement>(".hex-cell")];
+
+	function showHexPanel() {
+		hexPanel.classList.remove("is-settled");
+		hexPanel.hidden = false;
+		// next frame so the enter animation actually runs
+		requestAnimationFrame(() => {
+			hexPanel.classList.add("is-in");
+		});
+
+		let finished = 0;
+		const onEnd = (e: AnimationEvent) => {
+			if (e.animationName !== "hex-in") return;
+			finished += 1;
+			if (finished < hexCells.length) return;
+			hexPanel.classList.add("is-settled");
+			for (const cell of hexCells) {
+				cell.removeEventListener("animationend", onEnd);
+			}
+		};
+		for (const cell of hexCells) {
+			cell.addEventListener("animationend", onEnd);
+		}
+	}
+
+	function hideHexPanel() {
+		hexPanel.classList.remove("is-in", "is-settled");
+		hexPanel.hidden = true;
+	}
+
+	watchVignette((close) => {
+		vignette.classList.toggle("is-close", close);
+	});
+
+	watchStatus((next) => {
+		nameEl.textContent = next.text;
+		resetBtn.hidden = !next.showReset;
+	});
+
+	watchHex((open) => {
+		if (open) showHexPanel();
+		else hideHexPanel();
+	});
+
+	resetBtn.addEventListener("click", requestReset);
+	window.addEventListener("keydown", (e) => {
+		if (e.key === "Escape") requestReset();
+	});
+</script>
