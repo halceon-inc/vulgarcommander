@@ -5,6 +5,12 @@ RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build
 
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
+FROM oven/bun:1
+WORKDIR /app
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./
+ENV HOST=0.0.0.0
+ENV PORT=80
 EXPOSE 80
+CMD ["bun", "./dist/server/entry.mjs"]

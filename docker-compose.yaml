@@ -1,6 +1,9 @@
 services:
   web:
     build: .
+    environment:
+      HOST: 0.0.0.0
+      PORT: 80
     expose:
       - "80"
     restart: unless-stopped
