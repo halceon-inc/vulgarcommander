@@ -22,13 +22,15 @@ import "mapbox-gl/dist/mapbox-gl.css";
 	};
 
 	const STORAGE_KEY = "map.selectedLocation";
-	const OVERVIEW = { zoom: 1.55, pitch: 0, bearing: 0 } as const;
-	const CLOSEUP_ZOOM = 11.5;
+	const OVERVIEW = { pitch: 0, bearing: 0 } as const;
+	const CLOSEUP_ZOOM = 11.8;
 	const SPIN_ZOOM_CUTOFF = 3;
+	const LABEL_ZOOM = 3.7;
 
 	const token = String(import.meta.env.PUBLIC_MAPBOX_TOKEN ?? "").trim();
 	const nameEl = document.getElementById("location-name")!;
 	const resetBtn = document.getElementById("globe-reset") as HTMLButtonElement;
+	const stage = document.getElementById("globe-stage")!;
 	const el = document.getElementById("globe")!;
 
 	if (!token) {
@@ -73,16 +75,22 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		return res.json();
 	}
 
+	function fitZoom() {
+		const size = Math.min(el.clientWidth, el.clientHeight) || 680;
+		return Math.min(2.05, Math.max(0.75, 1.86 + Math.log2(size / 680)));
+	}
+
 	const map = new mapboxgl.Map({
 		container: el,
 		accessToken: token,
 		style: "mapbox://styles/mapbox/satellite-streets-v12",
 		projection: "globe",
-		center: [20, 15],
-		zoom: OVERVIEW.zoom,
+		center: [18, 14],
+		zoom: fitZoom(),
 		pitch: OVERVIEW.pitch,
 		bearing: OVERVIEW.bearing,
 		attributionControl: true,
+		antialias: true,
 		failIfMajorPerformanceCaveat: false,
 	});
 
@@ -97,7 +105,9 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		nameEl.textContent = msg;
 	});
 
-	const marker = new mapboxgl.Marker({ color: "#ff6b4a" });
+	const pin = document.createElement("div");
+	pin.className = "globe-pin";
+	const marker = new mapboxgl.Marker({ element: pin, anchor: "center" });
 
 	let userInteracting = false;
 	let spinEnabled = true;
@@ -112,15 +122,117 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		map.easeTo({ center, duration: 1000, easing: (n) => n });
 	}
 
-	map.on("style.load", () => {
-		// Mapbox globe defaults — avoid opaque black fog covering tiles
+	let atmosphere: "space" | "ground" = "space";
+	let labelsOn = true;
+	let sunLng = Number.NaN;
+	let sunClose = false;
+
+	function wrap360(deg: number) {
+		return ((deg % 360) + 360) % 360;
+	}
+
+	function aimSun(force = false) {
+		const lng = map.getCenter().lng;
+		const close = map.getZoom() >= 5;
+		if (!force && close === sunClose && Math.abs(lng - sunLng) < 8) return;
+		sunLng = lng;
+		sunClose = close;
+		// Key light sits just west of the camera target so the facing disk
+		// stays lit as the globe spins, with a soft falloff toward the limb.
+		map.setLights([
+			{
+				id: "ambient",
+				type: "ambient",
+				properties: {
+					color: "#f7f5f2",
+					intensity: close ? 0.5 : 0.4,
+				},
+			},
+			{
+				id: "sun",
+				type: "directional",
+				properties: {
+					color: "#fffaf4",
+					intensity: close ? 0.48 : 0.5,
+					direction: [wrap360(lng - (close ? 16 : 32)), close ? 48 : 30],
+					"cast-shadows": false,
+				},
+			},
+		]);
+	}
+
+	function syncAtmosphere() {
+		const next = map.getZoom() >= 4.2 ? "ground" : "space";
+		stage.classList.toggle("is-close", next === "ground");
+		if (next === atmosphere) return;
+		atmosphere = next;
+		if (next === "space") {
+			map.setFog({
+				color: "rgb(168, 204, 234)",
+				"high-color": "rgb(36, 92, 214)",
+				"horizon-blend": 0.055,
+				"space-color": "rgb(2, 4, 12)",
+				"star-intensity": 0.85,
+			});
+			return;
+		}
 		map.setFog({
-			color: "rgb(186, 210, 235)",
-			"high-color": "rgb(36, 92, 223)",
-			"horizon-blend": 0.02,
-			"space-color": "rgb(11, 11, 25)",
-			"star-intensity": 0.6,
+			range: [1.2, 10],
+			color: "rgb(206, 220, 232)",
+			"high-color": "rgb(126, 164, 210)",
+			"horizon-blend": 0.14,
+			"space-color": "rgb(168, 190, 214)",
+			"star-intensity": 0,
 		});
+	}
+
+	function syncLabels() {
+		const on = map.getZoom() >= LABEL_ZOOM;
+		if (on === labelsOn) return;
+		labelsOn = on;
+		for (const layer of map.getStyle()?.layers ?? []) {
+			if (layer.type !== "symbol") continue;
+			map.setLayoutProperty(layer.id, "visibility", on ? "visible" : "none");
+		}
+	}
+
+	function gradeImagery() {
+		for (const layer of map.getStyle()?.layers ?? []) {
+			if (layer.type !== "raster") continue;
+			map.setPaintProperty(layer.id, "raster-saturation", 0.08);
+			map.setPaintProperty(layer.id, "raster-contrast", 0.06);
+			map.setPaintProperty(layer.id, "raster-brightness-min", 0.03);
+		}
+	}
+
+	map.on("style.load", () => {
+		if (!map.getSource("mapbox-dem")) {
+			map.addSource("mapbox-dem", {
+				type: "raster-dem",
+				url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+				tileSize: 512,
+				maxzoom: 14,
+			});
+		}
+		map.setTerrain({
+			source: "mapbox-dem",
+			exaggeration: [
+				"interpolate",
+				["linear"],
+				["zoom"],
+				1.5,
+				0.45,
+				5,
+				1.15,
+				12,
+				1.45,
+			],
+		});
+		atmosphere = "ground";
+		aimSun(true);
+		syncAtmosphere();
+		gradeImagery();
+		syncLabels();
 		map.resize();
 	});
 
@@ -139,6 +251,11 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		userInteracting = false;
 		spinGlobe();
 	});
+	map.on("move", () => {
+		aimSun();
+		syncAtmosphere();
+		syncLabels();
+	});
 	map.on("moveend", () => {
 		spinGlobe();
 	});
@@ -148,7 +265,12 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		spinGlobe();
 	});
 
-	window.addEventListener("resize", () => map.resize());
+	window.addEventListener("resize", () => {
+		map.resize();
+		if (spinEnabled && map.getZoom() < SPIN_ZOOM_CUTOFF) {
+			map.jumpTo({ zoom: fitZoom() });
+		}
+	});
 
 	map.on("click", async (e) => {
 		const { lng, lat } = e.lngLat;
@@ -159,8 +281,10 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		map.flyTo({
 			center: [lng, lat],
 			zoom: CLOSEUP_ZOOM,
-			pitch: 45,
-			duration: 2200,
+			pitch: 58,
+			bearing: -16,
+			duration: 2800,
+			curve: 1.35,
 			essential: true,
 		});
 
@@ -188,7 +312,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		nameEl.textContent = "Click the globe";
 		map.flyTo({
 			center: [center.lng, center.lat],
-			zoom: OVERVIEW.zoom,
+			zoom: fitZoom(),
 			pitch: OVERVIEW.pitch,
 			bearing: OVERVIEW.bearing,
 			duration: 1800,
