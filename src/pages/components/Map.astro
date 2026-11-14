@@ -1,0 +1,151 @@
+---
+import "leaflet/dist/leaflet.css";
+---
+
+<div id="map"></div>
+<aside id="location-hud" aria-live="polite">
+	<span id="location-name">Click the map</span>
+</aside>
+
+<script>
+	import L from "leaflet";
+	import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png?url";
+	import markerIcon from "leaflet/dist/images/marker-icon.png?url";
+	import markerShadow from "leaflet/dist/images/marker-shadow.png?url";
+
+	type SavedLocation = {
+		name: string;
+		displayName: string;
+		lat: number;
+		lng: number;
+		at: string;
+	};
+
+	const STORAGE_KEY = "map.selectedLocation";
+	const DEFAULT: L.LatLngExpression = [37.7749, -122.4194];
+
+	delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
+		._getIconUrl;
+	L.Icon.Default.mergeOptions({
+		iconRetinaUrl: markerIcon2x,
+		iconUrl: markerIcon,
+		shadowUrl: markerShadow,
+	});
+
+	const nameEl = document.getElementById("location-name")!;
+
+	function loadSaved(): SavedLocation | null {
+		try {
+			const raw = localStorage.getItem(STORAGE_KEY);
+			return raw ? (JSON.parse(raw) as SavedLocation) : null;
+		} catch {
+			return null;
+		}
+	}
+
+	function saveLocation(loc: SavedLocation) {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(loc));
+		nameEl.textContent = loc.name;
+		
+        // expose the name to other things that want it
+		window.dispatchEvent(
+			new CustomEvent("map:location", { detail: loc }),
+		);
+	}
+
+	function bestName(result: {
+		name?: string;
+		display_name?: string;
+		address?: Record<string, string>;
+	}): string {
+		const a = result.address ?? {};
+		return (
+			result.name ||
+			a.amenity ||
+			a.building ||
+			a.tourism ||
+			a.leisure ||
+			a.shop ||
+			a.historic ||
+			a.natural ||
+			a.road ||
+			a.neighbourhood ||
+			a.suburb ||
+			a.quarter ||
+			a.city_district ||
+			a.city ||
+			a.town ||
+			a.village ||
+			a.hamlet ||
+			a.county ||
+			result.display_name ||
+			"Unknown location"
+		);
+	}
+
+	let abort: AbortController | null = null;
+
+	async function reverseGeocode(lat: number, lng: number) {
+		abort?.abort();
+		abort = new AbortController();
+		nameEl.textContent = "Looking up…";
+
+		const url = new URL("https://nominatim.openstreetmap.org/reverse");
+		url.searchParams.set("lat", String(lat));
+		url.searchParams.set("lon", String(lng));
+		url.searchParams.set("format", "jsonv2");
+		url.searchParams.set("zoom", "18");
+		url.searchParams.set("addressdetails", "1");
+
+		const res = await fetch(url, {
+			signal: abort.signal,
+			headers: { Accept: "application/json" },
+		});
+		if (!res.ok) throw new Error(`Nominatim ${res.status}`);
+		return res.json();
+	}
+
+	const saved = loadSaved();
+	const start: L.LatLngExpression = saved
+		? [saved.lat, saved.lng]
+		: DEFAULT;
+
+	const map = L.map("map", { zoomControl: true }).setView(start, 12);
+
+	L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+		maxZoom: 19,
+		attribution:
+			'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+	}).addTo(map);
+
+	const marker = L.marker(start).addTo(map);
+	if (saved) {
+		nameEl.textContent = saved.name;
+		marker.bindPopup(saved.name).openPopup();
+	} else {
+		marker.bindPopup("Click anywhere on the map");
+	}
+
+	map.on("click", async (e: L.LeafletMouseEvent) => {
+		const { lat, lng } = e.latlng;
+		marker.setLatLng(e.latlng);
+
+		try {
+			const result = await reverseGeocode(lat, lng);
+			const name = bestName(result);
+			const loc: SavedLocation = {
+				name,
+				displayName: result.display_name ?? name,
+				lat,
+				lng,
+				at: new Date().toISOString(),
+			};
+			saveLocation(loc);
+			marker.bindPopup(name).openPopup();
+		} catch (err) {
+			if ((err as Error).name === "AbortError") return;
+			nameEl.textContent = "Lookup failed";
+			console.error(err);
+		}
+	});
+</script>

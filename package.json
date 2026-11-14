@@ -16,5 +16,8 @@
     "@astrojs/node": "^11.1.13",
     "astro": "^7.4.12",
     "leaflet": "^1.9.4"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.22"
   }
 }
