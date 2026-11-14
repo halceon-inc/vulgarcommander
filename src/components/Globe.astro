@@ -4,6 +4,16 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 <div id="globe-stage">
 	<div id="globe"></div>
+	<div id="hex-panel" hidden>
+		<div class="hex-grid">
+			<button type="button" class="hex-cell" data-slot="0" style="--q: 1; --r: 0"></button>
+			<button type="button" class="hex-cell" data-slot="1" style="--q: 1; --r: -1"></button>
+			<button type="button" class="hex-cell" data-slot="2" style="--q: 0; --r: -1"></button>
+			<button type="button" class="hex-cell" data-slot="3" style="--q: -1; --r: 0"></button>
+			<button type="button" class="hex-cell" data-slot="4" style="--q: -1; --r: 1"></button>
+			<button type="button" class="hex-cell" data-slot="5" style="--q: 0; --r: 1"></button>
+		</div>
+	</div>
 </div>
 <aside id="location-hud" aria-live="polite">
 	<span id="location-name">Click the globe</span>
@@ -105,9 +115,48 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		nameEl.textContent = msg;
 	});
 
+	const hexPanel = document.getElementById("hex-panel")!;
+	const hexCells = [...hexPanel.querySelectorAll<HTMLElement>(".hex-cell")];
+	let awaitingCloseup = false;
+
+	function showHexPanel() {
+		hexPanel.classList.remove("is-settled");
+		hexPanel.hidden = false;
+		// next frame so the enter animation actually runs
+		requestAnimationFrame(() => {
+			hexPanel.classList.add("is-in");
+		});
+
+		let finished = 0;
+		const onEnd = (e: AnimationEvent) => {
+			if (e.animationName !== "hex-in") return;
+			finished += 1;
+			if (finished < hexCells.length) return;
+			hexPanel.classList.add("is-settled");
+			for (const cell of hexCells) {
+				cell.removeEventListener("animationend", onEnd);
+			}
+		};
+		for (const cell of hexCells) {
+			cell.addEventListener("animationend", onEnd);
+		}
+	}
+
+	function hideHexPanel() {
+		awaitingCloseup = false;
+		hexPanel.classList.remove("is-in", "is-settled");
+		hexPanel.hidden = true;
+	}
+
 	const pin = document.createElement("div");
 	pin.className = "globe-pin";
-	const marker = new mapboxgl.Marker({ element: pin, anchor: "center" });
+	pin.innerHTML = `
+		<svg viewBox="0 0 24 36" aria-hidden="true">
+			<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z"/>
+			<circle cx="12" cy="12" r="4.5"/>
+		</svg>
+	`;
+	const marker = new mapboxgl.Marker({ element: pin, anchor: "bottom" });
 
 	let userInteracting = false;
 	let spinEnabled = true;
@@ -258,6 +307,10 @@ import "mapbox-gl/dist/mapbox-gl.css";
 	});
 	map.on("moveend", () => {
 		spinGlobe();
+		if (awaitingCloseup && map.getZoom() >= CLOSEUP_ZOOM - 0.35) {
+			awaitingCloseup = false;
+			showHexPanel();
+		}
 	});
 
 	map.once("load", () => {
@@ -278,6 +331,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		resetBtn.hidden = false;
 
 		marker.setLngLat([lng, lat]).addTo(map);
+		hideHexPanel();
+		awaitingCloseup = true;
 		map.flyTo({
 			center: [lng, lat],
 			zoom: CLOSEUP_ZOOM,
@@ -309,6 +364,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 	function resetView() {
 		const center = map.getCenter();
 		marker.remove();
+		hideHexPanel();
 		nameEl.textContent = "Click the globe";
 		map.flyTo({
 			center: [center.lng, center.lat],
