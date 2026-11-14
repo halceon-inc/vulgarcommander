@@ -1,0 +1,205 @@
+---
+import "mapbox-gl/dist/mapbox-gl.css";
+---
+
+<div id="globe-stage">
+	<div id="globe"></div>
+</div>
+<aside id="location-hud" aria-live="polite">
+	<span id="location-name">Click the globe</span>
+	<button type="button" id="globe-reset" hidden>Reset view</button>
+</aside>
+
+<script>
+	import mapboxgl from "mapbox-gl";
+
+	type SavedLocation = {
+		name: string;
+		displayName: string;
+		lat: number;
+		lng: number;
+		at: string;
+	};
+
+	const STORAGE_KEY = "map.selectedLocation";
+	const OVERVIEW = { zoom: 1.55, pitch: 0, bearing: 0 } as const;
+	const CLOSEUP_ZOOM = 11.5;
+	const SPIN_ZOOM_CUTOFF = 3;
+
+	const token = String(import.meta.env.PUBLIC_MAPBOX_TOKEN ?? "").trim();
+	const nameEl = document.getElementById("location-name")!;
+	const resetBtn = document.getElementById("globe-reset") as HTMLButtonElement;
+	const el = document.getElementById("globe")!;
+
+	if (!token) {
+		nameEl.textContent = "Set PUBLIC_MAPBOX_TOKEN in .env and restart dev";
+		throw new Error("Missing PUBLIC_MAPBOX_TOKEN");
+	}
+
+	mapboxgl.accessToken = token;
+
+	function saveLocation(loc: SavedLocation) {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(loc));
+		nameEl.textContent = loc.name;
+		window.dispatchEvent(new CustomEvent("map:location", { detail: loc }));
+	}
+
+	function bestName(result: {
+		features?: Array<{ text?: string; place_name?: string }>;
+	}): string {
+		const f = result.features?.[0];
+		return f?.text || f?.place_name || "Unknown location";
+	}
+
+	let abort: AbortController | null = null;
+
+	async function reverseGeocode(lat: number, lng: number) {
+		abort?.abort();
+		abort = new AbortController();
+		nameEl.textContent = "Looking up…";
+
+		const url = new URL(
+			`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json`,
+		);
+		url.searchParams.set("access_token", token);
+		url.searchParams.set(
+			"types",
+			"place,locality,neighborhood,region,country",
+		);
+		url.searchParams.set("limit", "1");
+
+		const res = await fetch(url, { signal: abort.signal });
+		if (!res.ok) throw new Error(`Mapbox geocode ${res.status}`);
+		return res.json();
+	}
+
+	const map = new mapboxgl.Map({
+		container: el,
+		accessToken: token,
+		style: "mapbox://styles/mapbox/satellite-streets-v12",
+		projection: "globe",
+		center: [20, 15],
+		zoom: OVERVIEW.zoom,
+		pitch: OVERVIEW.pitch,
+		bearing: OVERVIEW.bearing,
+		attributionControl: true,
+		failIfMajorPerformanceCaveat: false,
+	});
+
+	map.addControl(
+		new mapboxgl.NavigationControl({ visualizePitch: true }),
+		"top-right",
+	);
+
+	map.on("error", (e) => {
+		const msg = e.error?.message ?? "Mapbox error";
+		console.error("[mapbox]", e.error);
+		nameEl.textContent = msg;
+	});
+
+	const marker = new mapboxgl.Marker({ color: "#ff6b4a" });
+
+	let userInteracting = false;
+	let spinEnabled = true;
+
+	function spinGlobe() {
+		if (!spinEnabled || userInteracting || map.getZoom() >= SPIN_ZOOM_CUTOFF) {
+			return;
+		}
+		const distancePerSecond = 360 / 140;
+		const center = map.getCenter();
+		center.lng -= distancePerSecond;
+		map.easeTo({ center, duration: 1000, easing: (n) => n });
+	}
+
+	map.on("style.load", () => {
+		// Mapbox globe defaults — avoid opaque black fog covering tiles
+		map.setFog({
+			color: "rgb(186, 210, 235)",
+			"high-color": "rgb(36, 92, 223)",
+			"horizon-blend": 0.02,
+			"space-color": "rgb(11, 11, 25)",
+			"star-intensity": 0.6,
+		});
+		map.resize();
+	});
+
+	map.on("mousedown", () => {
+		userInteracting = true;
+	});
+	map.on("dragstart", () => {
+		userInteracting = true;
+		spinEnabled = false;
+	});
+	map.on("mouseup", () => {
+		userInteracting = false;
+		spinGlobe();
+	});
+	map.on("touchend", () => {
+		userInteracting = false;
+		spinGlobe();
+	});
+	map.on("moveend", () => {
+		spinGlobe();
+	});
+
+	map.once("load", () => {
+		map.resize();
+		spinGlobe();
+	});
+
+	window.addEventListener("resize", () => map.resize());
+
+	map.on("click", async (e) => {
+		const { lng, lat } = e.lngLat;
+		spinEnabled = false;
+		resetBtn.hidden = false;
+
+		marker.setLngLat([lng, lat]).addTo(map);
+		map.flyTo({
+			center: [lng, lat],
+			zoom: CLOSEUP_ZOOM,
+			pitch: 45,
+			duration: 2200,
+			essential: true,
+		});
+
+		try {
+			const result = await reverseGeocode(lat, lng);
+			const name = bestName(result);
+			const loc: SavedLocation = {
+				name,
+				displayName: result.features?.[0]?.place_name ?? name,
+				lat,
+				lng,
+				at: new Date().toISOString(),
+			};
+			saveLocation(loc);
+		} catch (err) {
+			if ((err as Error).name === "AbortError") return;
+			nameEl.textContent = "Lookup failed";
+			console.error(err);
+		}
+	});
+
+	function resetView() {
+		const center = map.getCenter();
+		marker.remove();
+		nameEl.textContent = "Click the globe";
+		map.flyTo({
+			center: [center.lng, center.lat],
+			zoom: OVERVIEW.zoom,
+			pitch: OVERVIEW.pitch,
+			bearing: OVERVIEW.bearing,
+			duration: 1800,
+			essential: true,
+		});
+		spinEnabled = true;
+		resetBtn.hidden = true;
+	}
+
+	resetBtn.addEventListener("click", resetView);
+	window.addEventListener("keydown", (e) => {
+		if (e.key === "Escape") resetView();
+	});
+</script>
