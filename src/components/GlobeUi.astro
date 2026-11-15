@@ -7,14 +7,144 @@
 </div>
 <div id="hex-panel" hidden>
 	<div class="hex-grid">
-		<button type="button" class="hex-cell" data-slot="0" style="--q: 1; --r: 0"></button>
-		<button type="button" class="hex-cell" data-slot="1" style="--q: 1; --r: -1"></button>
-		<button type="button" class="hex-cell" data-slot="2" style="--q: 0; --r: -1"></button>
-		<button type="button" class="hex-cell" data-slot="3" style="--q: -1; --r: 0"></button>
-		<button type="button" class="hex-cell" data-slot="4" style="--q: -1; --r: 1"></button>
-		<button type="button" class="hex-cell" data-slot="5" style="--q: 0; --r: 1"></button>
+		<button type="button" class="hex-cell" data-slot="0" data-graph="rings" style="--q: 1; --r: 0">
+			<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5.5"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+			<span class="hex-name">Rings</span>
+			<span class="hex-sub">Year by year</span>
+		</button>
+		<button type="button" class="hex-cell" data-slot="1" data-graph="calendar" style="--q: 1; --r: -1">
+			<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2"></rect><path d="M3.5 9.5h17M3.5 14.5h17M9 9.5v10M14.5 9.5v10"></path></svg>
+			<span class="hex-name">Calendar</span>
+			<span class="hex-sub">Week by week</span>
+		</button>
+		<button type="button" class="hex-cell" data-slot="2" data-graph="race" style="--q: 0; --r: -1">
+			<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 20.5h17"></path><path d="M4 18.5c6-1 10-5 16-12"></path><path d="M4 18.5c6 0 10-2.5 16-6" opacity="0.45"></path></svg>
+			<span class="hex-name">Race</span>
+			<span class="hex-sub">This year vs. past</span>
+		</button>
+		<button type="button" class="hex-cell" data-slot="3" data-graph="drift" style="--q: -1; --r: 0">
+			<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M7 12h10M10 18h10"></path><path d="M8.5 4v4M12 10v4M15 16v4"></path></svg>
+			<span class="hex-name">Drift</span>
+			<span class="hex-sub">Season timing</span>
+		</button>
+		<button type="button" class="hex-cell" data-slot="4" data-graph="seam" style="--q: -1; --r: 1">
+			<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5h7v-9h10"></path><path d="M10.5 3.5v17" stroke-dasharray="2 2.5"></path></svg>
+			<span class="hex-name">Seam</span>
+			<span class="hex-sub">Sensor change</span>
+		</button>
+		<button type="button" class="hex-cell is-empty" data-slot="5" style="--q: 0; --r: 1" disabled aria-hidden="true" tabindex="-1"></button>
 	</div>
 </div>
+<div id="ring-frame" class="chart-frame" hidden>
+	<div class="chart-card chart-card--ring" role="dialog" aria-modal="true" aria-labelledby="ring-frame-title">
+		<header class="chart-head">
+			<div>
+				<p class="chart-eyebrow">Fire-scar rings · 100 miles</p>
+				<h2 id="ring-frame-title">Fire history</h2>
+			</div>
+			<button type="button" id="ring-frame-close" class="chart-close" aria-label="Close">
+				<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+			</button>
+		</header>
+		<p id="ring-readout" class="chart-readout"></p>
+		<div class="chart-panel">
+			<div id="ring-chart" class="ring-host" data-state="idle"></div>
+			<div id="ring-legend" class="ring-legend"></div>
+		</div>
+	</div>
+</div>
+<div id="calendar-frame" class="chart-frame" hidden>
+	<div class="chart-card chart-card--calendar" role="dialog" aria-modal="true" aria-labelledby="calendar-frame-title">
+		<header class="chart-head">
+			<div>
+				<p class="chart-eyebrow">One calendar · 100 miles</p>
+				<h2 id="calendar-frame-title">Fire history</h2>
+			</div>
+			<div class="chart-actions">
+				<div class="cal-toggle" role="group" aria-label="Colour cells by">
+					<button type="button" data-mode="count" aria-pressed="true">Fire days</button>
+					<button type="button" data-mode="departure" aria-pressed="false">Departure</button>
+				</div>
+				<button type="button" id="calendar-frame-close" class="chart-close" aria-label="Close">
+					<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+				</button>
+			</div>
+		</header>
+		<p id="calendar-readout" class="chart-readout"></p>
+		<div class="chart-panel">
+			<div id="calendar-chart" class="calendar-host" data-state="idle"></div>
+			<div id="calendar-legend" class="ring-legend"></div>
+		</div>
+		<details class="cal-numbers">
+			<summary>Show the numbers by year</summary>
+			<div id="calendar-table"></div>
+		</details>
+	</div>
+</div>
+<div id="race-frame" class="chart-frame" hidden>
+	<div class="chart-card" role="dialog" aria-modal="true" aria-labelledby="race-frame-title">
+		<header class="chart-head">
+			<div>
+				<p class="chart-eyebrow">Season race · 100 miles</p>
+				<h2 id="race-frame-title">Fire history</h2>
+			</div>
+			<button type="button" id="race-frame-close" class="chart-close" aria-label="Close">
+				<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+			</button>
+		</header>
+		<p id="race-readout" class="chart-readout"></p>
+		<div class="chart-panel">
+			<div id="race-chart" class="race-host" data-state="idle"></div>
+			<div id="race-legend" class="ring-legend"></div>
+		</div>
+	</div>
+</div>
+<div id="drift-frame" class="chart-frame" hidden>
+	<div class="chart-card" role="dialog" aria-modal="true" aria-labelledby="drift-frame-title">
+		<header class="chart-head">
+			<div>
+				<p class="chart-eyebrow">Season drift · 100 miles</p>
+				<h2 id="drift-frame-title">Fire history</h2>
+			</div>
+			<button type="button" id="drift-frame-close" class="chart-close" aria-label="Close">
+				<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+			</button>
+		</header>
+		<p id="drift-readout" class="chart-readout"></p>
+		<div class="chart-panel">
+			<div id="drift-chart" class="race-host" data-state="idle"></div>
+			<div id="drift-legend" class="ring-legend"></div>
+		</div>
+	</div>
+</div>
+<div id="seam-frame" class="chart-frame" hidden>
+	<div class="chart-card chart-card--wide" role="dialog" aria-modal="true" aria-labelledby="seam-frame-title">
+		<header class="chart-head">
+			<div>
+				<p class="chart-eyebrow">Show the seam · 100 miles</p>
+				<h2 id="seam-frame-title">Fire history</h2>
+			</div>
+			<button type="button" id="seam-frame-close" class="chart-close" aria-label="Close">
+				<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+			</button>
+		</header>
+		<p id="seam-readout" class="chart-readout"></p>
+		<div class="seam-grid">
+			<section class="chart-panel seam-panel">
+				<p class="seam-cap">Fire days per year <span>log scale, with satellites in orbit</span></p>
+				<div id="seam-chart" class="race-host" data-state="idle"></div>
+				<div id="seam-legend" class="ring-legend"></div>
+			</section>
+			<section class="chart-panel seam-panel">
+				<p class="seam-cap">Same week, before and after 2012 <span>each week's average in each era</span></p>
+				<div id="seam-scatter" class="race-host" data-state="idle"></div>
+				<div id="seam-scatter-legend" class="ring-legend"></div>
+			</section>
+		</div>
+		<p class="seam-note">Both charts use the merged day count, so a day that both sensors recorded counts once.</p>
+	</div>
+</div>
+<div id="ring-tip" hidden></div>
 <aside id="location-hud" aria-live="polite">
 	<span id="location-name">Click the globe</span>
 	<button type="button" id="globe-reset" hidden>Reset view</button>
@@ -87,6 +217,21 @@
 		letter-spacing: 0.03em;
 	}
 
+	#location-name {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	#location-name::before {
+		content: "";
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: #d95926;
+		box-shadow: 0 0 0 3px rgba(217, 89, 38, 0.18);
+	}
+
 	#globe-reset {
 		appearance: none;
 		margin: 0;
@@ -142,22 +287,70 @@
 		--y: calc(var(--r) * 0.75 * var(--hex-size) * var(--hex-gap));
 		--i: 0;
 		appearance: none;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.35rem;
+		font: 600 clamp(12px, calc(var(--hex-size) * 0.072), 16px) / 1 ui-sans-serif, system-ui, sans-serif;
+		letter-spacing: 0.01em;
 		position: absolute;
 		left: 50%;
 		top: 50%;
+		isolation: isolate;
 		width: calc(var(--hex-size) * 0.8660254);
 		height: var(--hex-size);
 		margin: 0;
 		padding: 0;
-		border: 1px solid rgba(196, 200, 206, 0.85);
-		background: #5c6168;
-		color: #e8eef7;
+		border: 0;
+		/* the outer hex is the border, ::before is the fill */
+		background: rgba(255, 255, 255, 0.16);
+		color: #e8edef;
 		cursor: pointer;
 		pointer-events: auto;
 		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 		opacity: 0;
 		transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(0.55);
-		transition: background 0.15s ease, border-color 0.15s ease;
+		transition: background 0.18s ease;
+	}
+
+	.hex-cell::before {
+		content: "";
+		position: absolute;
+		inset: 1.5px;
+		z-index: -1;
+		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+		background: linear-gradient(165deg, rgba(30, 39, 46, 0.94), rgba(12, 17, 22, 0.94));
+		transition: background 0.18s ease;
+	}
+
+	.hex-cell svg {
+		width: 30%;
+		max-width: 36px;
+		margin-bottom: 0.15rem;
+		fill: none;
+		stroke: #84939c;
+		stroke-width: 1.6;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		transition: stroke 0.18s ease;
+	}
+
+	.hex-sub {
+		color: #84939c;
+		font: 500 clamp(9px, calc(var(--hex-size) * 0.048), 10.5px) / 1 ui-monospace, Menlo, Consolas, monospace;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.hex-cell.is-empty {
+		background: rgba(255, 255, 255, 0.07);
+		cursor: default;
+		pointer-events: none;
+	}
+
+	.hex-cell.is-empty::before {
+		background: rgba(10, 14, 18, 0.45);
 	}
 
 	.hex-cell:nth-child(1) {
@@ -190,17 +383,895 @@
 		opacity: 1;
 		transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1);
 		transition:
-			background 0.15s ease,
-			border-color 0.15s ease,
-			transform 0.15s ease;
+			background 0.18s ease,
+			transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 	}
 
-	#hex-panel.is-settled .hex-cell:hover,
-	#hex-panel.is-settled .hex-cell:focus-visible {
-		background: #6e747c;
-		border-color: #e8eef7;
+	#hex-panel.is-settled .hex-cell:not(.is-empty):hover,
+	#hex-panel.is-settled .hex-cell:not(.is-empty):focus-visible {
+		background: #d95926;
 		outline: none;
-		transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1.04);
+		transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1.05);
+	}
+
+	#hex-panel.is-settled .hex-cell:not(.is-empty):hover::before,
+	#hex-panel.is-settled .hex-cell:not(.is-empty):focus-visible::before {
+		background: linear-gradient(165deg, rgba(52, 36, 28, 0.96), rgba(20, 16, 14, 0.96));
+	}
+
+	#hex-panel.is-settled .hex-cell:hover svg,
+	#hex-panel.is-settled .hex-cell:focus-visible svg {
+		stroke: #ef8d58;
+	}
+
+	.chart-frame {
+		position: fixed;
+		inset: 0;
+		z-index: 12;
+		display: grid;
+		place-items: center;
+		padding: 1.25rem;
+		background: radial-gradient(ellipse at 50% 40%, rgba(2, 4, 12, 0.45), rgba(2, 4, 12, 0.72));
+		backdrop-filter: blur(3px);
+		animation: frame-in 0.22s ease both;
+	}
+
+	.chart-frame[hidden] {
+		display: none;
+	}
+
+	.chart-card {
+		width: min(920px, 100%);
+		max-height: calc(100dvh - 2.5rem);
+		overflow: auto;
+		padding: 1.15rem 1.3rem 1.1rem;
+		background:
+			linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 7rem),
+			rgba(14, 19, 24, 0.95);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		border-radius: 18px;
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.06) inset,
+			0 28px 90px rgba(0, 0, 0, 0.55);
+		backdrop-filter: blur(16px);
+		color: #e8edef;
+		scrollbar-width: thin;
+		scrollbar-color: #3e4b53 transparent;
+		animation: card-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+
+	.chart-card--ring {
+		width: min(720px, 100%);
+	}
+
+	.chart-card--calendar {
+		width: min(1040px, 100%);
+	}
+
+	.chart-card--wide {
+		width: min(1180px, 100%);
+	}
+
+	.chart-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 0.8rem;
+	}
+
+	.chart-eyebrow {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		margin: 0;
+		color: #84939c;
+		font: 500 11px/1 ui-monospace, Menlo, Consolas, monospace;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	.chart-eyebrow::before {
+		content: "";
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: #d95926;
+		box-shadow: 0 0 0 3px rgba(217, 89, 38, 0.18);
+	}
+
+	.chart-head h2 {
+		margin: 0.45rem 0 0;
+		font: 650 24px/1.1 ui-sans-serif, system-ui, sans-serif;
+		letter-spacing: -0.015em;
+	}
+
+	.chart-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
+	.chart-close {
+		appearance: none;
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 32px;
+		height: 32px;
+		margin: 0;
+		padding: 0;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.06);
+		color: #b3bfc6;
+		cursor: pointer;
+		transition:
+			background 0.15s ease,
+			color 0.15s ease,
+			border-color 0.15s ease;
+	}
+
+	.chart-close svg {
+		width: 14px;
+		height: 14px;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.75;
+		stroke-linecap: round;
+	}
+
+	.chart-close:hover,
+	.chart-close:focus-visible {
+		background: rgba(255, 255, 255, 0.14);
+		border-color: rgba(255, 255, 255, 0.22);
+		color: #fff;
+		outline: none;
+	}
+
+	.chart-panel {
+		min-width: 0;
+		padding: 0.9rem 1rem 0.8rem;
+		background: #192025;
+		border: 1px solid rgba(255, 255, 255, 0.04);
+		border-radius: 14px;
+	}
+
+	.chart-panel > .ring-legend {
+		margin-top: 0.75rem;
+		padding-top: 0.7rem;
+		border-top: 1px solid #252e34;
+	}
+
+	.ring-legend .ramp {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.ring-legend .ramp svg {
+		display: block;
+		border-radius: 2px;
+	}
+
+	.ring-host {
+		width: min(600px, 100%, calc(100dvh - 21rem));
+		margin: 0 auto;
+		aspect-ratio: 1;
+	}
+
+	.ring-host[data-state="loading"],
+	.ring-host[data-state="error"] {
+		display: grid;
+		place-items: center;
+		color: #b3bfc6;
+		font: 600 14px/1.2 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.ring-legend {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.55rem 0.9rem;
+		margin-top: 0.75rem;
+		color: #b3bfc6;
+		font: 500 12px/1.3 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.ring-legend .sw {
+		display: inline-block;
+		width: 0.7rem;
+		height: 0.7rem;
+		margin-right: 0.35rem;
+		vertical-align: -0.1rem;
+		border-radius: 2px;
+	}
+
+	.ring-legend .sw.zero {
+		background: #252e34;
+	}
+
+	.ring-legend .sw.pending {
+		background: transparent;
+		border: 1px dashed #3e4b53;
+	}
+
+	.ring-legend .sw.era {
+		height: 0;
+		border-top: 1px dashed #e8edef;
+		border-radius: 0;
+		vertical-align: 0.25rem;
+	}
+
+	.ring-host svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.ring-zero {
+		fill: #252e34;
+	}
+
+	.ring-pending {
+		fill: none;
+		stroke: #3e4b53;
+		stroke-width: 0.75;
+	}
+
+	.ring-era,
+	.ring-tick,
+	.ring-hl,
+	.ring-month,
+	.ring-year,
+	.ring-read,
+	.ring-sub {
+		pointer-events: none;
+	}
+
+	.ring-era {
+		fill: none;
+		stroke: #e8edef;
+		stroke-width: 1;
+		stroke-dasharray: 3 3;
+	}
+
+	.ring-tick {
+		stroke: #84939c;
+		stroke-width: 1;
+	}
+
+	.ring-hl {
+		fill: none;
+		stroke: #e8edef;
+		stroke-width: 1.5;
+	}
+
+	.ring-month,
+	.ring-year {
+		fill: #b3bfc6;
+		font-family: ui-monospace, "IBM Plex Mono", Menlo, Consolas, monospace;
+	}
+
+	.ring-read {
+		fill: #e8edef;
+		font-family: "IBM Plex Sans Condensed", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+		font-weight: 600;
+	}
+
+	.ring-sub {
+		fill: #84939c;
+		font-family: ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.ring-core {
+		fill: #10161b;
+		stroke: #2b353b;
+		stroke-width: 1;
+		pointer-events: none;
+	}
+
+	#ring-tip {
+		position: fixed;
+		z-index: 30;
+		max-width: 240px;
+		padding: 0.5rem 0.65rem;
+		background: rgba(8, 12, 18, 0.92);
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		border-radius: 10px;
+		color: #b3bfc6;
+		box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+		backdrop-filter: blur(8px);
+		font: 500 12px/1.5 ui-sans-serif, system-ui, sans-serif;
+		pointer-events: none;
+	}
+
+	#ring-tip b {
+		color: #fff;
+		font-weight: 650;
+	}
+
+	.cal-toggle {
+		display: flex;
+		padding: 3px;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 999px;
+	}
+
+	.cal-toggle button {
+		appearance: none;
+		margin: 0;
+		padding: 0.4rem 0.8rem;
+		border: 0;
+		border-radius: 999px;
+		background: transparent;
+		color: #84939c;
+		font: 500 12.5px/1 ui-sans-serif, system-ui, sans-serif;
+		cursor: pointer;
+		transition:
+			background 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.cal-toggle button:hover {
+		color: #e8edef;
+	}
+
+	.cal-toggle button[aria-pressed="true"] {
+		background: #e8edef;
+		color: #10161c;
+		font-weight: 600;
+	}
+
+	.calendar-host {
+		width: 100%;
+	}
+
+	.calendar-host[data-state="loading"],
+	.calendar-host[data-state="error"] {
+		display: grid;
+		place-items: center;
+		min-height: 12rem;
+		color: #b3bfc6;
+		font: 600 14px/1.2 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.calendar-host svg {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	.cal-zero {
+		fill: #252e34;
+	}
+
+	.cal-pending {
+		fill: none;
+		stroke: #3e4b53;
+		stroke-width: 0.6;
+	}
+
+	.cal-bar {
+		fill: #84939c;
+		opacity: 0.7;
+	}
+
+	.cal-hair {
+		stroke: #2b353b;
+		stroke-width: 1;
+	}
+
+	.cal-axis {
+		fill: none;
+		stroke: #3e4b53;
+		stroke-width: 1;
+	}
+
+	.cal-hl {
+		fill: none;
+		stroke: #e8edef;
+		stroke-width: 1.25;
+		pointer-events: none;
+	}
+
+	.cal-label,
+	.cal-year {
+		fill: #b3bfc6;
+		font-family: ui-sans-serif, system-ui, sans-serif;
+		pointer-events: none;
+	}
+
+	.cal-year {
+		font-family: ui-monospace, Menlo, Consolas, monospace;
+	}
+
+	.ring-legend .sw.bar {
+		background: #84939c;
+		opacity: 0.7;
+	}
+
+	.ring-legend .sw.now,
+	.ring-legend .sw.line,
+	.ring-legend .sw.dash {
+		width: 18px;
+		height: 0;
+		border-radius: 0;
+		background: transparent;
+		vertical-align: 0.22rem;
+	}
+
+	.ring-legend .sw.now {
+		border-top: 3px solid #d95926;
+	}
+
+	.ring-legend .sw.line {
+		border-top: 1.5px solid #b3bfc6;
+	}
+
+	.ring-legend .sw.dash {
+		border-top: 1.5px dashed #84939c;
+	}
+
+	.ring-legend .sw.band {
+		background: #e8edef;
+	}
+
+	.ring-legend .sw.band.b0 {
+		opacity: 0.22;
+	}
+
+	.ring-legend .sw.band.b1 {
+		opacity: 0.4;
+	}
+
+	.ring-legend .sw.band.b2 {
+		opacity: 0.62;
+	}
+
+	.cal-numbers {
+		margin-top: 0.8rem;
+		color: #b3bfc6;
+		font: 500 13px/1.4 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.cal-numbers summary {
+		cursor: pointer;
+	}
+
+	.cal-numbers table {
+		width: 100%;
+		margin-top: 0.6rem;
+		border-collapse: collapse;
+		font: 500 12px/1.4 ui-monospace, Menlo, Consolas, monospace;
+	}
+
+	.cal-numbers th,
+	.cal-numbers td {
+		padding: 0.28rem 0.5rem;
+		border-bottom: 1px solid #2b353b;
+		text-align: left;
+	}
+
+	.cal-numbers th {
+		color: #84939c;
+		font-weight: 500;
+	}
+
+	.seam-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 640fr) minmax(0, 342fr);
+		gap: 0.75rem;
+		align-items: stretch;
+	}
+
+	@media (max-width: 860px) {
+		.seam-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.seam-panel {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.seam-panel .race-host {
+		flex: 1;
+	}
+
+	.seam-panel .race-host[data-state="ready"] {
+		display: flex;
+		align-items: center;
+	}
+
+	.seam-cap {
+		margin: 0 0 0.6rem;
+		color: #e8edef;
+		font: 600 14px/1.2 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.seam-cap span {
+		display: block;
+		margin-top: 0.2rem;
+		color: #84939c;
+		font-weight: 500;
+		font-size: 12px;
+	}
+
+	.seam-panel .ring-legend {
+		gap: 0.4rem 0.85rem;
+		font-size: 11.5px;
+	}
+
+	.seam-panel .ring-legend sup {
+		font-size: 0.75em;
+	}
+
+	.seam-note {
+		margin: 0.7rem 0 0;
+		color: #84939c;
+		font: 500 12px/1.45 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.ring-legend .sw.point {
+		background: #b3bfc6;
+		border-radius: 99px;
+	}
+
+	.ring-legend .sw.thin {
+		width: 22px;
+		height: 3px;
+		background: #84939c;
+		vertical-align: 0.2rem;
+	}
+
+	.ring-legend .sw.core {
+		width: 14px;
+		height: 9px;
+		border-radius: 2px;
+		background: #84939c;
+	}
+
+	.ring-legend .sw.tick {
+		width: 0;
+		height: 11px;
+		border-left: 2px solid #e8edef;
+		border-radius: 0;
+		background: transparent;
+		vertical-align: -0.05rem;
+	}
+
+	.ring-legend .sw.modis {
+		background: #3987e5;
+	}
+
+	.ring-legend .sw.viirs {
+		background: #199e70;
+	}
+
+	.ring-legend .mono {
+		margin: 0 0.3rem;
+		font-family: ui-monospace, Menlo, Consolas, monospace;
+	}
+
+	.drift-hair,
+	.seam-hair {
+		stroke: #2b353b;
+		stroke-width: 1;
+		fill: none;
+		pointer-events: none;
+	}
+
+	.seam-axis {
+		stroke: #3e4b53;
+		stroke-width: 1;
+		fill: none;
+	}
+
+	.drift-label,
+	.seam-label {
+		fill: #84939c;
+		font-family: ui-sans-serif, system-ui, sans-serif;
+		font-size: 11px;
+		pointer-events: none;
+	}
+
+	.drift-label.ink,
+	.seam-label.ink {
+		fill: #e8edef;
+		font-weight: 600;
+	}
+
+	.drift-year,
+	.seam-mono {
+		fill: #b3bfc6;
+		font-family: ui-monospace, Menlo, Consolas, monospace;
+		font-size: 10.5px;
+		pointer-events: none;
+	}
+
+	.drift-tick {
+		stroke: #e8edef;
+		stroke-width: 2;
+		pointer-events: none;
+	}
+
+	.drift-trend,
+	.seam-mark {
+		fill: none;
+		stroke: #e8edef;
+		stroke-width: 1.15;
+		stroke-dasharray: 4 3;
+		pointer-events: none;
+	}
+
+	.seam-mono.ink {
+		fill: #e8edef;
+		font-weight: 600;
+	}
+
+	.seam-plot {
+		fill: #1c2429;
+		pointer-events: none;
+	}
+
+	.seam-era {
+		fill: #e8edef;
+		opacity: 0.035;
+		pointer-events: none;
+	}
+
+	.seam-era-label {
+		fill: #84939c;
+		font-family: ui-monospace, Menlo, Consolas, monospace;
+		font-size: 9.5px;
+		letter-spacing: 0.08em;
+		pointer-events: none;
+	}
+
+	.seam-area {
+		fill: url(#seam-area-grad);
+		pointer-events: none;
+	}
+
+	.seam-level {
+		stroke: #e8edef;
+		stroke-width: 1;
+		stroke-dasharray: 2 3;
+		opacity: 0.55;
+		pointer-events: none;
+	}
+
+	.seam-line {
+		fill: none;
+		stroke: #d95926;
+		stroke-width: 2.25;
+		stroke-linejoin: round;
+		stroke-linecap: round;
+		pointer-events: none;
+	}
+
+	.seam-dot,
+	.seam-pt,
+	.seam-one,
+	.seam-fit,
+	.seam-ring,
+	.seam-guide {
+		pointer-events: none;
+	}
+
+	.seam-dot {
+		fill: #d95926;
+		stroke: #192025;
+		stroke-width: 1.5;
+	}
+
+	.seam-guide {
+		stroke: #e8edef;
+		stroke-width: 1;
+		opacity: 0.25;
+	}
+
+	.seam-ring {
+		fill: none;
+		stroke: #e8edef;
+		stroke-width: 1.5;
+	}
+
+	.seam-pt {
+		fill: #b3bfc6;
+		fill-opacity: 0.7;
+		stroke: #192025;
+		stroke-width: 0.75;
+	}
+
+	.seam-one {
+		fill: none;
+		stroke: #84939c;
+		stroke-width: 1;
+		stroke-dasharray: 4 3;
+	}
+
+	.seam-fit {
+		fill: none;
+		stroke: #d95926;
+		stroke-width: 2.25;
+		stroke-linecap: round;
+	}
+
+	.seam-corner {
+		fill: #5d6b73;
+		font-style: italic;
+	}
+
+	.seam-halo {
+		paint-order: stroke;
+		stroke: #1c2429;
+		stroke-width: 3.5px;
+		stroke-linejoin: round;
+	}
+
+	.seam-sat {
+		pointer-events: none;
+	}
+
+	.seam-sat.modis {
+		fill: #3987e5;
+		opacity: 0.55;
+	}
+
+	.seam-sat.viirs {
+		fill: #199e70;
+		opacity: 0.6;
+	}
+
+	.seam-sat-label {
+		fill: #84939c;
+		font-family: ui-monospace, Menlo, Consolas, monospace;
+		font-size: 9.5px;
+		pointer-events: none;
+	}
+
+	.chart-readout {
+		margin: 0 0 0.9rem;
+		max-width: 64ch;
+		color: #cfd8dc;
+		font: 450 17px/1.45 ui-sans-serif, system-ui, sans-serif;
+		text-wrap: pretty;
+	}
+
+	.chart-readout:empty {
+		display: none;
+	}
+
+	.chart-readout b {
+		color: #fff;
+		font-weight: 650;
+		background: linear-gradient(transparent 62%, rgba(217, 89, 38, 0.38) 62%);
+		padding: 0 0.1em;
+		border-radius: 2px;
+	}
+
+	.race-host {
+		width: 100%;
+	}
+
+	.race-host[data-state="loading"],
+	.race-host[data-state="empty"],
+	.race-host[data-state="error"] {
+		display: grid;
+		place-items: center;
+		min-height: 12rem;
+		color: #b3bfc6;
+		font: 600 14px/1.2 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.race-host svg {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	.race-label {
+		fill: #84939c;
+		font-family: ui-sans-serif, system-ui, sans-serif;
+		font-size: 11px;
+		pointer-events: none;
+	}
+
+	.race-label.ink {
+		fill: #e8edef;
+		font-weight: 600;
+	}
+
+	.race-label.analog {
+		fill: #b3bfc6;
+		font-weight: 600;
+	}
+
+	.race-mono {
+		fill: #84939c;
+		font-family: ui-monospace, Menlo, Consolas, monospace;
+		font-size: 10.5px;
+		pointer-events: none;
+	}
+
+	.race-halo {
+		paint-order: stroke;
+		stroke: #192025;
+		stroke-width: 3.5px;
+		stroke-linejoin: round;
+	}
+
+	.race-hair {
+		stroke: #2b353b;
+		stroke-width: 1;
+		fill: none;
+		pointer-events: none;
+	}
+
+	.race-axis {
+		stroke: #3e4b53;
+		stroke-width: 1;
+		fill: none;
+	}
+
+	.race-band {
+		pointer-events: none;
+	}
+
+	.race-band.b0 {
+		fill: #e8edef;
+		opacity: 0.06;
+	}
+
+	.race-band.b1 {
+		fill: #e8edef;
+		opacity: 0.08;
+	}
+
+	.race-band.b2 {
+		fill: #e8edef;
+		opacity: 0.11;
+	}
+
+	.race-line {
+		fill: none;
+		pointer-events: none;
+	}
+
+	.race-line.med {
+		stroke: #84939c;
+		stroke-width: 1.25;
+		stroke-dasharray: 4 3;
+	}
+
+	.race-line.analog {
+		stroke: #b3bfc6;
+		stroke-width: 1.25;
+	}
+
+	.race-line.now {
+		stroke: #d95926;
+		stroke-width: 2.5;
+		stroke-linejoin: round;
+		stroke-linecap: round;
+	}
+
+	.race-dot {
+		fill: #d95926;
+		stroke: #192025;
+		stroke-width: 2;
+		pointer-events: none;
+	}
+
+	.race-cross {
+		stroke: #e8edef;
+		stroke-width: 1;
+		opacity: 0.5;
+		pointer-events: none;
 	}
 
 	@keyframes hex-in {
@@ -224,9 +1295,35 @@
 			transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(0.55);
 		}
 	}
+
+	@keyframes frame-in {
+		from {
+			opacity: 0;
+		}
+	}
+
+	@keyframes card-in {
+		from {
+			opacity: 0;
+			transform: translateY(10px) scale(0.985);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.chart-frame,
+		.chart-card {
+			animation: none;
+		}
+	}
 </style>
 
 <script>
+	import { drawCalendar, type CalendarMode } from "./calendar-chart";
+	import { drawDrift } from "./drift-chart";
+	import { drawRace } from "./race-chart";
+	import { drawSeam } from "./seam-chart";
+	import { clearRingTip, drawRingChart } from "./ring-chart";
+	import type { RingSeries } from "../lib/firms-db";
 	import { requestReset, watchHex, watchStatus, watchVignette } from "./globe-ui";
 
 	const vignette = document.getElementById("globe-vignette")!;
@@ -234,6 +1331,54 @@
 	const resetBtn = document.getElementById("globe-reset") as HTMLButtonElement;
 	const hexPanel = document.getElementById("hex-panel")!;
 	const hexCells = [...hexPanel.querySelectorAll<HTMLElement>(".hex-cell")];
+	const ringFrame = document.getElementById("ring-frame")!;
+	const ringCard = ringFrame.querySelector<HTMLElement>(".chart-card")!;
+	const ringHost = document.getElementById("ring-chart")!;
+	const ringLegend = document.getElementById("ring-legend")!;
+	const ringReadout = document.getElementById("ring-readout")!;
+	const ringTitle = document.getElementById("ring-frame-title")!;
+	const ringClose = document.getElementById("ring-frame-close") as HTMLButtonElement;
+	const ringTip = document.getElementById("ring-tip")!;
+	const ringButton = hexPanel.querySelector<HTMLButtonElement>("[data-graph='rings']")!;
+	const calendarFrame = document.getElementById("calendar-frame")!;
+	const calendarCard = calendarFrame.querySelector<HTMLElement>(".chart-card")!;
+	const calendarHost = document.getElementById("calendar-chart")!;
+	const calendarLegend = document.getElementById("calendar-legend")!;
+	const calendarReadout = document.getElementById("calendar-readout")!;
+	const calendarTable = document.getElementById("calendar-table")!;
+	const calendarTitle = document.getElementById("calendar-frame-title")!;
+	const calendarClose = document.getElementById("calendar-frame-close") as HTMLButtonElement;
+	const calendarButton = hexPanel.querySelector<HTMLButtonElement>("[data-graph='calendar']")!;
+	const calendarModes = [...calendarFrame.querySelectorAll<HTMLButtonElement>(".cal-toggle button")];
+	const raceFrame = document.getElementById("race-frame")!;
+	const raceCard = raceFrame.querySelector<HTMLElement>(".chart-card")!;
+	const raceHost = document.getElementById("race-chart")!;
+	const raceLegend = document.getElementById("race-legend")!;
+	const raceReadout = document.getElementById("race-readout")!;
+	const raceTitle = document.getElementById("race-frame-title")!;
+	const raceClose = document.getElementById("race-frame-close") as HTMLButtonElement;
+	const raceButton = hexPanel.querySelector<HTMLButtonElement>("[data-graph='race']")!;
+	const driftFrame = document.getElementById("drift-frame")!;
+	const driftCard = driftFrame.querySelector<HTMLElement>(".chart-card")!;
+	const driftHost = document.getElementById("drift-chart")!;
+	const driftLegend = document.getElementById("drift-legend")!;
+	const driftReadout = document.getElementById("drift-readout")!;
+	const driftTitle = document.getElementById("drift-frame-title")!;
+	const driftClose = document.getElementById("drift-frame-close") as HTMLButtonElement;
+	const driftButton = hexPanel.querySelector<HTMLButtonElement>("[data-graph='drift']")!;
+	const seamFrame = document.getElementById("seam-frame")!;
+	const seamCard = seamFrame.querySelector<HTMLElement>(".chart-card")!;
+	const seamHost = document.getElementById("seam-chart")!;
+	const seamScatter = document.getElementById("seam-scatter")!;
+	const seamLegend = document.getElementById("seam-legend")!;
+	const seamScatterLegend = document.getElementById("seam-scatter-legend")!;
+	const seamReadout = document.getElementById("seam-readout")!;
+	const seamTitle = document.getElementById("seam-frame-title")!;
+	const seamClose = document.getElementById("seam-frame-close") as HTMLButtonElement;
+	const seamButton = hexPanel.querySelector<HTMLButtonElement>("[data-graph='seam']")!;
+	let ringAbort: AbortController | null = null;
+	let ringSeries: RingSeries | null = null;
+	let calendarMode: CalendarMode = "count";
 	let hideTimer = 0;
 	let onHexOut: ((e: AnimationEvent) => void) | null = null;
 
@@ -246,10 +1391,197 @@
 		onHexOut = null;
 	}
 
+	function closeRingFrame() {
+		clearRingTip(ringTip);
+		ringFrame.hidden = true;
+	}
+
+	function closeCalendarFrame() {
+		clearRingTip(ringTip);
+		calendarFrame.hidden = true;
+	}
+
+	function closeRaceFrame() {
+		clearRingTip(ringTip);
+		raceFrame.hidden = true;
+	}
+
+	function closeDriftFrame() {
+		clearRingTip(ringTip);
+		driftFrame.hidden = true;
+	}
+
+	function closeSeamFrame() {
+		clearRingTip(ringTip);
+		seamFrame.hidden = true;
+	}
+
+	function paintRings() {
+		clearRingTip(ringTip);
+		if (!ringSeries) {
+			ringLegend.replaceChildren();
+			ringReadout.replaceChildren();
+			ringHost.replaceChildren(ringHost.dataset.state === "error" ? "No record" : "…");
+			return;
+		}
+		ringTitle.textContent = nameEl.textContent || "Fire history";
+		drawRingChart(ringHost, ringSeries, ringTip, ringLegend, ringReadout);
+	}
+
+	function openRingFrame() {
+		closeCalendarFrame();
+		closeRaceFrame();
+		closeDriftFrame();
+		closeSeamFrame();
+		ringFrame.hidden = false;
+		paintRings();
+		ringClose.focus();
+	}
+
+	function paintCalendar() {
+		clearRingTip(ringTip);
+		if (!ringSeries) {
+			calendarLegend.replaceChildren();
+			calendarTable.replaceChildren();
+			calendarReadout.replaceChildren();
+			calendarHost.replaceChildren(calendarHost.dataset.state === "error" ? "No record" : "…");
+			return;
+		}
+		calendarTitle.textContent = nameEl.textContent || "Fire history";
+		drawCalendar(calendarHost, ringSeries, ringTip, calendarLegend, calendarTable, calendarMode, calendarReadout);
+	}
+
+	function openCalendarFrame() {
+		closeRingFrame();
+		closeRaceFrame();
+		closeDriftFrame();
+		closeSeamFrame();
+		calendarFrame.hidden = false;
+		paintCalendar();
+		calendarClose.focus();
+	}
+
+	function paintRace() {
+		clearRingTip(ringTip);
+		if (!ringSeries) {
+			raceLegend.replaceChildren();
+			raceReadout.replaceChildren();
+			raceHost.replaceChildren(raceHost.dataset.state === "error" ? "No record" : "…");
+			return;
+		}
+		raceTitle.textContent = nameEl.textContent || "Fire history";
+		drawRace(raceHost, ringSeries, ringTip, raceLegend, raceReadout);
+	}
+
+	function openRaceFrame() {
+		closeRingFrame();
+		closeCalendarFrame();
+		closeDriftFrame();
+		closeSeamFrame();
+		raceFrame.hidden = false;
+		paintRace();
+		raceClose.focus();
+	}
+
+	function paintDrift() {
+		clearRingTip(ringTip);
+		if (!ringSeries) {
+			driftLegend.replaceChildren();
+			driftReadout.replaceChildren();
+			driftHost.replaceChildren(driftHost.dataset.state === "error" ? "No record" : "…");
+			return;
+		}
+		driftTitle.textContent = nameEl.textContent || "Fire history";
+		drawDrift(driftHost, ringSeries, ringTip, driftLegend, driftReadout);
+	}
+
+	function openDriftFrame() {
+		closeRingFrame();
+		closeCalendarFrame();
+		closeRaceFrame();
+		closeSeamFrame();
+		driftFrame.hidden = false;
+		paintDrift();
+		driftClose.focus();
+	}
+
+	function paintSeam() {
+		clearRingTip(ringTip);
+		if (!ringSeries) {
+			seamLegend.replaceChildren();
+			seamScatterLegend.replaceChildren();
+			seamReadout.replaceChildren();
+			const waiting = seamHost.dataset.state === "error" ? "No record" : "…";
+			seamHost.replaceChildren(waiting);
+			seamScatter.replaceChildren(waiting);
+			return;
+		}
+		seamTitle.textContent = nameEl.textContent || "Fire history";
+		drawSeam(seamHost, seamScatter, ringSeries, ringTip, seamLegend, seamScatterLegend, seamReadout);
+	}
+
+	function openSeamFrame() {
+		closeRingFrame();
+		closeCalendarFrame();
+		closeRaceFrame();
+		closeDriftFrame();
+		seamFrame.hidden = false;
+		paintSeam();
+		seamClose.focus();
+	}
+
 	function finishHide() {
 		clearHide();
+		closeRingFrame();
+		closeCalendarFrame();
+		closeRaceFrame();
+		closeDriftFrame();
+		closeSeamFrame();
 		hexPanel.hidden = true;
 		hexPanel.classList.remove("is-out");
+	}
+
+	async function loadRings(lat: number, lng: number) {
+		ringAbort?.abort();
+		const abort = new AbortController();
+		ringAbort = abort;
+		ringSeries = null;
+		ringHost.dataset.state = "loading";
+		calendarHost.dataset.state = "loading";
+		raceHost.dataset.state = "loading";
+		driftHost.dataset.state = "loading";
+		seamHost.dataset.state = "loading";
+		seamScatter.dataset.state = "loading";
+		if (!ringFrame.hidden) paintRings();
+		if (!calendarFrame.hidden) paintCalendar();
+		if (!raceFrame.hidden) paintRace();
+		if (!driftFrame.hidden) paintDrift();
+		if (!seamFrame.hidden) paintSeam();
+		try {
+			const res = await fetch(`/api/hotspots/rings?lat=${lat}&lng=${lng}`, { signal: abort.signal });
+			if (!res.ok) throw new Error(`rings ${res.status}`);
+			const series = (await res.json()) as RingSeries;
+			if (abort.signal.aborted) return;
+			ringSeries = series;
+			if (!ringFrame.hidden) paintRings();
+			if (!calendarFrame.hidden) paintCalendar();
+			if (!raceFrame.hidden) paintRace();
+			if (!driftFrame.hidden) paintDrift();
+			if (!seamFrame.hidden) paintSeam();
+		} catch (err) {
+			if ((err as Error).name === "AbortError") return;
+			ringHost.dataset.state = "error";
+			calendarHost.dataset.state = "error";
+			raceHost.dataset.state = "error";
+			driftHost.dataset.state = "error";
+			seamHost.dataset.state = "error";
+			seamScatter.dataset.state = "error";
+			if (!ringFrame.hidden) paintRings();
+			if (!calendarFrame.hidden) paintCalendar();
+			if (!raceFrame.hidden) paintRace();
+			if (!driftFrame.hidden) paintDrift();
+			if (!seamFrame.hidden) paintSeam();
+		}
 	}
 
 	function showHexPanel() {
@@ -309,8 +1641,71 @@
 		else hideHexPanel();
 	});
 
+	window.addEventListener("map:location", (event) => {
+		const detail = (event as CustomEvent<{ lat: number; lng: number }>).detail;
+		if (!Number.isFinite(detail?.lat) || !Number.isFinite(detail?.lng)) return;
+		void loadRings(detail.lat, detail.lng);
+	});
+
+	ringButton.addEventListener("click", openRingFrame);
+	ringClose.addEventListener("click", closeRingFrame);
+	ringFrame.addEventListener("click", (event) => {
+		if (!ringCard.contains(event.target as Node)) closeRingFrame();
+	});
+
+	calendarButton.addEventListener("click", openCalendarFrame);
+	raceButton.addEventListener("click", openRaceFrame);
+	driftButton.addEventListener("click", openDriftFrame);
+	seamButton.addEventListener("click", openSeamFrame);
+	raceClose.addEventListener("click", closeRaceFrame);
+	raceFrame.addEventListener("click", (event) => {
+		if (!raceCard.contains(event.target as Node)) closeRaceFrame();
+	});
+	driftClose.addEventListener("click", closeDriftFrame);
+	driftFrame.addEventListener("click", (event) => {
+		if (!driftCard.contains(event.target as Node)) closeDriftFrame();
+	});
+	seamClose.addEventListener("click", closeSeamFrame);
+	seamFrame.addEventListener("click", (event) => {
+		if (!seamCard.contains(event.target as Node)) closeSeamFrame();
+	});
+	calendarClose.addEventListener("click", closeCalendarFrame);
+	calendarFrame.addEventListener("click", (event) => {
+		if (!calendarCard.contains(event.target as Node)) closeCalendarFrame();
+	});
+	for (const button of calendarModes) {
+		button.addEventListener("click", () => {
+			calendarMode = button.dataset.mode === "departure" ? "departure" : "count";
+			for (const other of calendarModes) {
+				other.setAttribute("aria-pressed", String(other === button));
+			}
+			if (ringSeries) paintCalendar();
+		});
+	}
+
 	resetBtn.addEventListener("click", requestReset);
 	window.addEventListener("keydown", (e) => {
-		if (e.key === "Escape") requestReset();
+		if (e.key !== "Escape") return;
+		if (!seamFrame.hidden) {
+			closeSeamFrame();
+			return;
+		}
+		if (!driftFrame.hidden) {
+			closeDriftFrame();
+			return;
+		}
+		if (!raceFrame.hidden) {
+			closeRaceFrame();
+			return;
+		}
+		if (!calendarFrame.hidden) {
+			closeCalendarFrame();
+			return;
+		}
+		if (!ringFrame.hidden) {
+			closeRingFrame();
+			return;
+		}
+		requestReset();
 	});
 </script>

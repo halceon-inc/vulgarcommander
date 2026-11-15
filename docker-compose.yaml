@@ -4,6 +4,7 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: 80
+      FIRMS_DB: /data/firms.sqlite
     expose:
       - "80"
     restart: unless-stopped

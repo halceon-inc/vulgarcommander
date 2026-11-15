@@ -22,3 +22,10 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+
+datasets/*/*.zip
+
+scripts/__pycache__/
+
+data/*

@@ -2,3 +2,7 @@ node_modules
 dist
 .astro
 .git
+datasets
+scripts/__pycache__
+data/*
+!data/firms.sqlite
