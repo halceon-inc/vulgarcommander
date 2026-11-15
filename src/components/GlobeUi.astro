@@ -104,9 +104,9 @@
 		background: rgba(255, 255, 255, 0.18);
 	}
 
-	/* Screen-space hex slot UI (pointy-top honeycomb) */
+	/* honeycomb thing on the globe */
 	#hex-panel {
-		/* --hex-size = vertex-to-vertex height */
+		/* --hex-size is the vertex-to-vertex height */
 		--hex-size: min(26vmin, 32vmax);
 		--hex-gap: 1.22;
 		position: fixed;
@@ -115,6 +115,12 @@
 		display: grid;
 		place-items: center;
 		pointer-events: none;
+	}
+
+	#hex-panel.is-out .hex-cell {
+		pointer-events: none;
+		animation: hex-out 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+		animation-delay: calc(var(--i) * 45ms);
 	}
 
 	#hex-panel[hidden] {
@@ -129,7 +135,7 @@
 	}
 
 	.hex-cell {
-		/* pointy-top axial → pixel */
+		/* pointy-top axial to pixel */
 		--x: calc(
 			(var(--q) + var(--r) * 0.5) * var(--hex-size) * 0.8660254 * var(--hex-gap)
 		);
@@ -178,7 +184,7 @@
 		animation-delay: calc(var(--i) * 70ms);
 	}
 
-	/* Lock final pose so hover doesn't restart the enter animation */
+	/* lock final the pose so hover doesn't restart the enter animation */
 	#hex-panel.is-settled .hex-cell {
 		animation: none;
 		opacity: 1;
@@ -207,6 +213,17 @@
 			transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1);
 		}
 	}
+
+	@keyframes hex-out {
+		from {
+			opacity: 1;
+			transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1);
+		}
+		to {
+			opacity: 0;
+			transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(0.55);
+		}
+	}
 </style>
 
 <script>
@@ -217,18 +234,36 @@
 	const resetBtn = document.getElementById("globe-reset") as HTMLButtonElement;
 	const hexPanel = document.getElementById("hex-panel")!;
 	const hexCells = [...hexPanel.querySelectorAll<HTMLElement>(".hex-cell")];
+	let hideTimer = 0;
+	let onHexOut: ((e: AnimationEvent) => void) | null = null;
+
+	function clearHide() {
+		window.clearTimeout(hideTimer);
+		if (!onHexOut) return;
+		for (const cell of hexCells) {
+			cell.removeEventListener("animationend", onHexOut);
+		}
+		onHexOut = null;
+	}
+
+	function finishHide() {
+		clearHide();
+		hexPanel.hidden = true;
+		hexPanel.classList.remove("is-out");
+	}
 
 	function showHexPanel() {
-		hexPanel.classList.remove("is-settled");
+		clearHide();
+		hexPanel.classList.remove("is-settled", "is-out");
 		hexPanel.hidden = false;
-		// next frame so the enter animation actually runs
+		//next frame so the enter animation actually runs
 		requestAnimationFrame(() => {
 			hexPanel.classList.add("is-in");
 		});
 
 		let finished = 0;
 		const onEnd = (e: AnimationEvent) => {
-			if (e.animationName !== "hex-in") return;
+			if (e.animationName !== "hex-in" || hexPanel.classList.contains("is-out")) return;
 			finished += 1;
 			if (finished < hexCells.length) return;
 			hexPanel.classList.add("is-settled");
@@ -242,8 +277,22 @@
 	}
 
 	function hideHexPanel() {
+		if (hexPanel.hidden || hexPanel.classList.contains("is-out")) return;
 		hexPanel.classList.remove("is-in", "is-settled");
-		hexPanel.hidden = true;
+		hexPanel.classList.add("is-out");
+
+		let finished = 0;
+		onHexOut = (e: AnimationEvent) => {
+			if (e.animationName !== "hex-out") return;
+			finished += 1;
+			if (finished < hexCells.length) return;
+			finishHide();
+		};
+		for (const cell of hexCells) {
+			cell.addEventListener("animationend", onHexOut);
+		}
+		//0.55s + stagger, added a little slack if animationend is missed
+		hideTimer = window.setTimeout(finishHide, 900);
 	}
 
 	watchVignette((close) => {

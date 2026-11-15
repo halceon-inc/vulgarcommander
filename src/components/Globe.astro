@@ -92,6 +92,11 @@ import "mapbox-gl/dist/mapbox-gl.css";
 	const SPIN_ZOOM_CUTOFF = 3;
 	const LABEL_ZOOM = 3.7;
 
+	//smooth ease io for the whole flight, linear feels mechanical, and the built in fly ease flattens so long that the landing stalls
+	function closeupEase(t: number) {
+		return 0.5 - Math.cos(Math.PI * t) / 2;
+	}
+
 	const token = String(import.meta.env.PUBLIC_MAPBOX_TOKEN ?? "").trim();
 	const el = document.getElementById("globe")!;
 	const pin = document.getElementById("globe-pin");
@@ -171,6 +176,14 @@ import "mapbox-gl/dist/mapbox-gl.css";
 	});
 
 	let awaitingCloseup = false;
+	let hexPinned = false;
+
+	function releaseHex() {
+		if (!hexPinned) return;
+		hexPinned = false;
+		marker.remove();
+		setHexOpen(false);
+	}
 
 	const marker = new mapboxgl.Marker({ element: pin, anchor: "bottom" });
 
@@ -202,8 +215,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		if (!force && close === sunClose && Math.abs(lng - sunLng) < 8) return;
 		sunLng = lng;
 		sunClose = close;
-		// Key light sits just west of the camera target so the facing disk
-		// stays lit as the globe spins, with a soft falloff toward the limb.
+		//key light sits just west of the camera target so the facing disk stays lit as the globe spins with a soft falloff toward the limb
 		map.setLights([
 			{
 				id: "ambient",
@@ -316,6 +328,9 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		userInteracting = false;
 		spinGlobe();
 	});
+	map.on("movestart", () => {
+		releaseHex();
+	});
 	map.on("move", () => {
 		aimSun();
 		syncAtmosphere();
@@ -325,6 +340,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		spinGlobe();
 		if (awaitingCloseup && map.getZoom() >= CLOSEUP_ZOOM - 0.35) {
 			awaitingCloseup = false;
+			hexPinned = true;
 			setHexOpen(true);
 		}
 	});
@@ -347,6 +363,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		setStatus("Looking up…", true);
 
 		marker.setLngLat([lng, lat]).addTo(map);
+		hexPinned = false;
 		setHexOpen(false);
 		awaitingCloseup = true;
 		map.flyTo({
@@ -354,8 +371,9 @@ import "mapbox-gl/dist/mapbox-gl.css";
 			zoom: CLOSEUP_ZOOM,
 			pitch: 58,
 			bearing: -16,
-			duration: 2800,
+			duration: 1900,
 			curve: 1.35,
+			easing: closeupEase,
 			essential: true,
 		});
 
@@ -381,6 +399,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		const center = map.getCenter();
 		marker.remove();
 		awaitingCloseup = false;
+		hexPinned = false;
 		setHexOpen(false);
 		setStatus("Click the globe", false);
 		map.flyTo({
