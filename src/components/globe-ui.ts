@@ -3,7 +3,9 @@ export type GlobeStatus = {
 	showReset: boolean;
 };
 
-let status: GlobeStatus = { text: "Click the globe", showReset: false };
+export const IDLE_HINT = "Click anywhere on the globe to see its fire history";
+
+let status: GlobeStatus = { text: IDLE_HINT, showReset: false };
 let hexOpen = false;
 let vignetteClose = false;
 

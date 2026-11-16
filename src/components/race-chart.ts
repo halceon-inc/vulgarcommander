@@ -269,9 +269,9 @@ export function drawRace(host: HTMLElement, series: RingSeries, tip: HTMLElement
 
 	if (history.length && maxYear && maxYear.cum[51] > 0) {
 		const labels = [
-			{ y: yOf(rq[6][51]), s: `max, ${maxYear.year}`, c: "race-label" },
-			{ y: yOf(rq[3][51]), s: "median", c: "race-label" },
-			...analogs.map((year) => ({ y: yOf(year.cum[51]), s: `${year.year} analog`, c: "race-label analog" })),
+			{ y: yOf(rq[6][51]), s: `busiest, ${maxYear.year}`, c: "race-label" },
+			{ y: yOf(rq[3][51]), s: "typical", c: "race-label" },
+			...analogs.map((year) => ({ y: yOf(year.cum[51]), s: `${year.year}, similar`, c: "race-label analog" })),
 		];
 		for (const label of spread(labels, 15, top + 12, top + plotH - 10)) {
 			text(svg, label.s, { x: left + plotW + 8, y: label.y + 3.5, class: label.c });
@@ -310,9 +310,9 @@ export function drawRace(host: HTMLElement, series: RingSeries, tip: HTMLElement
 	const earlier = `${history.length} earlier year${history.length === 1 ? "" : "s"}`;
 	const analogSentence =
 		analogs.length >= 2
-			? ` The closest past seasons are <b>${analogs[0].year}</b> and <b>${analogs[1].year}</b>.`
+			? ` The most similar past years are <b>${analogs[0].year}</b> and <b>${analogs[1].year}</b>.`
 			: analogs.length === 1
-				? ` The closest past season is <b>${analogs[0].year}</b>.`
+				? ` The most similar past year is <b>${analogs[0].year}</b>.`
 				: "";
 	if (!history.length) {
 		readout.innerHTML = partial
@@ -326,13 +326,13 @@ export function drawRace(host: HTMLElement, series: RingSeries, tip: HTMLElement
 
 	const span = history.length ? `${history[0].year}–${history[history.length - 1].year}` : "";
 	const legendItems = [`<span><i class="sw now"></i>${subject.year}</span>`];
-	if (analogs.length) legendItems.push(`<span><i class="sw line"></i>Closest past years</span>`);
+	if (analogs.length) legendItems.push(`<span><i class="sw line"></i>Most similar past years</span>`);
 	if (history.length) {
 		legendItems.push(
-			`<span><i class="sw dash"></i>Median of ${span}</span>`,
-			`<span><i class="sw band b2"></i>25th to 75th</span>`,
-			`<span><i class="sw band b1"></i>10th to 90th</span>`,
-			`<span><i class="sw band b0"></i>Lowest to highest</span>`,
+			`<span><i class="sw dash"></i>Typical year, ${span}</span>`,
+			`<span><i class="sw band b2"></i>Middle half of past years</span>`,
+			`<span><i class="sw band b1"></i>Most past years (8 in 10)</span>`,
+			`<span><i class="sw band b0"></i>Quietest to busiest year</span>`,
 		);
 	}
 	legend.innerHTML = legendItems.join("");

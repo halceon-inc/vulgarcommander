@@ -179,7 +179,7 @@ export function drawCalendar(
 	if (viirs > 0) {
 		el(svg, "path", { d: `M14 ${yA + 1}H8V${yB - 2}H14`, class: "cal-axis" });
 		el(svg, "path", { d: `M14 ${yB + 2}H8V${yC - 1}H14`, class: "cal-axis" });
-		text(svg, "MODIS only", {
+		text(svg, "Older camera", {
 			x: 0,
 			y: 0,
 			class: "cal-label",
@@ -187,7 +187,7 @@ export function drawCalendar(
 			"font-size": 11,
 			transform: `translate(22,${(yA + yB) / 2}) rotate(-90)`,
 		});
-		text(svg, "MODIS + VIIRS", {
+		text(svg, "Older + sharper camera", {
 			x: 0,
 			y: 0,
 			class: "cal-label",
@@ -304,15 +304,15 @@ export function drawCalendar(
 			.sort((a, b) => b.n - a.n || b.year - a.year)[0];
 		readout.innerHTML =
 			hot && hot.n > 0
-				? `Each week is ranked against the same week in other years. <b>${hot.year}</b> had the most unusually busy weeks, <b>${hot.n}</b> of 52 in the top tenth.`
-				: "Each week is ranked against the same week in other years.";
+				? `Each week is compared with the same week in other years. <b>${hot.year}</b> had the most unusually busy weeks: <b>${hot.n}</b> of its 52 weeks were among the busiest 10% on record.`
+				: "Each week is compared with the same week in other years.";
 	}
 
-	const margin = `<span><i class="sw bar"></i>Margins: typical week on top, year total on the right</span>`;
+	const margin = `<span><i class="sw bar"></i>Bars: typical week on top, year total on the right</span>`;
 	if (mode === "count") {
-		legend.innerHTML = `${countLegend(series.maxWeek)}<span><i class="sw zero"></i>None</span><span><i class="sw pending"></i>Not in the archive</span>${margin}`;
+		legend.innerHTML = `${countLegend(series.maxWeek)}<span><i class="sw zero"></i>No fires</span><span><i class="sw pending"></i>No data yet</span>${margin}`;
 	} else {
-		legend.innerHTML = `<span>Quieter than usual</span><span>${rampSvg(DIV, 150)}</span><span>Busier than usual</span><span><i class="sw zero"></i>Never burns that week</span><span><i class="sw pending"></i>Not in the archive</span>${margin}`;
+		legend.innerHTML = `<span>Quieter than usual</span><span>${rampSvg(DIV, 150)}</span><span>Busier than usual</span><span><i class="sw zero"></i>Never burns that week</span><span><i class="sw pending"></i>No data yet</span>${margin}`;
 	}
 
 	const rows = years

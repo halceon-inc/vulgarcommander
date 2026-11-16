@@ -104,7 +104,7 @@ export async function ringSeries(lat: number, lng: number): Promise<RingSeries> 
 			"SELECT lat, lng, year, week, days FROM cell_week WHERE lat BETWEEN $1 AND $2 AND lng BETWEEN $3 AND $4",
 			[latLo, latHi, lo, hi],
 		);
-		rows.push(...result.rows.map((row) => cell(row)));
+		for (const row of result.rows) rows.push(cell(row));
 	}
 
 	const byYear = new Map<number, Map<number, number>>();

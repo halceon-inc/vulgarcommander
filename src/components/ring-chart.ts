@@ -83,7 +83,7 @@ export function drawRingLegend(legend: HTMLElement, maxWeek: number) {
 	const max = Math.max(maxWeek, 1);
 	const t0 = Math.log1p(1) / Math.log1p(max);
 	const ramp = rampLegend("Fire days per week", (t) => lerp(SEQ, t0 + (1 - t0) * t), "1", full(max));
-	legend.innerHTML = `${ramp}<span><i class="sw zero"></i>None</span><span><i class="sw pending"></i>Not in the archive</span><span><i class="sw era"></i>Suomi-NPP joins, 2012</span><span>Years are marked in the gap at the top</span>`;
+	legend.innerHTML = `${ramp}<span><i class="sw zero"></i>No fires</span><span><i class="sw pending"></i>No data yet</span><span><i class="sw era"></i>Sharper satellite added, 2012</span><span>Year labels are in the gap at the top</span>`;
 }
 
 function ringReadout(readout: HTMLElement, series: RingSeries) {

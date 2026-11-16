@@ -76,7 +76,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 <script>
 	import mapboxgl from "mapbox-gl";
-	import { onReset, setHexOpen, setStatus, setVignetteClose } from "./globe-ui";
+	import { IDLE_HINT, onReset, setHexOpen, setStatus, setVignetteClose } from "./globe-ui";
 
 	type SavedLocation = {
 		name: string;
@@ -87,10 +87,14 @@ import "mapbox-gl/dist/mapbox-gl.css";
 	};
 
 	const STORAGE_KEY = "map.selectedLocation";
+	const HOME_KEY = "map.home";
 	const OVERVIEW = { pitch: 0, bearing: 0 } as const;
-	const CLOSEUP_ZOOM = 11.8;
+	const RANGE_MILES = 100;
+	const EARTH_MILES = 3958.7613;
 	const SPIN_ZOOM_CUTOFF = 3;
 	const LABEL_ZOOM = 3.7;
+	// one full turn in about two minutes, same unhurried pace as the overview spin
+	const ORBIT_DEGREES_PER_SECOND = 3;
 
 	//smooth ease io for the whole flight, linear feels mechanical, and the built in fly ease flattens so long that the landing stalls
 	function closeupEase(t: number) {
@@ -111,17 +115,82 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 	mapboxgl.accessToken = token;
 
+	let currentPlace: SavedLocation | null = null;
+	let savedHome: SavedLocation | null = readHome();
+
+	function readHome(): SavedLocation | null {
+		try {
+			const raw = localStorage.getItem(HOME_KEY);
+			if (!raw) return null;
+			const parsed = JSON.parse(raw) as SavedLocation;
+			if (!parsed || typeof parsed.name !== "string" || !Number.isFinite(parsed.lat) || !Number.isFinite(parsed.lng)) return null;
+			return parsed;
+		} catch {
+			return null;
+		}
+	}
+
+	function placesMatch(a: SavedLocation, b: SavedLocation) {
+		return Math.abs(a.lat - b.lat) < 0.0008 && Math.abs(a.lng - b.lng) < 0.0008;
+	}
+
+	function hideHomeHint() {
+		const hint = document.getElementById("home-hint");
+		const go = document.getElementById("home-go");
+		if (hint instanceof HTMLElement) hint.hidden = true;
+		if (go instanceof HTMLButtonElement) go.setAttribute("aria-expanded", "false");
+	}
+
+	function syncHomeControls() {
+		const slot = document.getElementById("home-slot");
+		const go = document.getElementById("home-go");
+		const clear = document.getElementById("home-clear");
+		const save = document.getElementById("home-save");
+		const unset = savedHome == null;
+		if (slot instanceof HTMLElement) slot.classList.toggle("is-unset", unset);
+		if (clear instanceof HTMLButtonElement) clear.hidden = unset;
+		if (go instanceof HTMLButtonElement) {
+			if (savedHome) {
+				hideHomeHint();
+				go.title = savedHome.displayName || savedHome.name;
+				go.setAttribute("aria-label", `Go to home, ${savedHome.name}`);
+			} else {
+				go.title = "How to set a home";
+				go.setAttribute("aria-label", "Home is not set");
+			}
+		}
+		if (save instanceof HTMLButtonElement) {
+			const isHome = currentPlace != null && savedHome != null && placesMatch(currentPlace, savedHome);
+			save.hidden = currentPlace == null;
+			save.disabled = isHome;
+			save.textContent = isHome ? "Your home" : "Set as home";
+			save.title = isHome ? "This place is saved as home" : "Save this place as home";
+		}
+	}
+
 	function saveLocation(loc: SavedLocation) {
+		currentPlace = loc;
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(loc));
 		setStatus(loc.name, true);
+		syncHomeControls();
+		const searchInput = document.getElementById("place-search-input");
+		if (searchInput instanceof HTMLInputElement && document.activeElement !== searchInput) {
+			searchInput.value = loc.name;
+		}
 		window.dispatchEvent(new CustomEvent("map:location", { detail: loc }));
 	}
 
-	function bestName(result: {
-		features?: Array<{ text?: string; place_name?: string }>;
-	}): string {
+	function coordName(lat: number, lng: number) {
+		return `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"}, ${Math.abs(lng).toFixed(2)}°${lng >= 0 ? "E" : "W"}`;
+	}
+
+	function bestName(
+		result: { features?: Array<{ text?: string; place_name?: string }> },
+		lat: number,
+		lng: number,
+	): string {
 		const f = result.features?.[0];
-		return f?.text || f?.place_name || "Unknown location";
+		return f?.text || f?.place_name || coordName(lat, lng);
 	}
 
 	let abort: AbortController | null = null;
@@ -150,6 +219,64 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		return Math.min(2.05, Math.max(0.75, 1.86 + Math.log2(size / 680)));
 	}
 
+	// zoom where the 100-mile ring fills most of the shorter side of the screen
+	function rangeZoom() {
+		const size = Math.min(el.clientWidth, el.clientHeight) || 680;
+		const diameterDeg = ((2 * RANGE_MILES) / EARTH_MILES) * (180 / Math.PI);
+		const worldPx = ((size * 0.86) * 360) / diameterDeg;
+		return Math.min(8.6, Math.max(4.8, Math.log2(worldPx / 512)));
+	}
+
+	function rangeRing(lat: number, lng: number): GeoJSON.Position[] {
+		const steps = 96;
+		const distance = RANGE_MILES / EARTH_MILES;
+		const latRad = (lat * Math.PI) / 180;
+		const lngRad = (lng * Math.PI) / 180;
+		const ring: GeoJSON.Position[] = [];
+		for (let i = 0; i <= steps; i++) {
+			const bearing = (i / steps) * Math.PI * 2;
+			const lat2 = Math.asin(
+				Math.sin(latRad) * Math.cos(distance) + Math.cos(latRad) * Math.sin(distance) * Math.cos(bearing),
+			);
+			const lng2 =
+				lngRad +
+				Math.atan2(
+					Math.sin(bearing) * Math.sin(distance) * Math.cos(latRad),
+					Math.cos(distance) - Math.sin(latRad) * Math.sin(lat2),
+				);
+			ring.push([(lng2 * 180) / Math.PI, (lat2 * 180) / Math.PI]);
+		}
+		return ring;
+	}
+
+	const emptyRange: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
+	let rangeFeature: GeoJSON.FeatureCollection = emptyRange;
+	let closeZoom = rangeZoom();
+
+	function syncRange() {
+		const source = map.getSource("range");
+		if (source && source.type === "geojson") source.setData(rangeFeature);
+	}
+
+	function showRange(lat: number, lng: number) {
+		rangeFeature = {
+			type: "FeatureCollection",
+			features: [
+				{
+					type: "Feature",
+					properties: {},
+					geometry: { type: "Polygon", coordinates: [rangeRing(lat, lng)] },
+				},
+			],
+		};
+		syncRange();
+	}
+
+	function hideRange() {
+		rangeFeature = emptyRange;
+		syncRange();
+	}
+
 	const map = new mapboxgl.Map({
 		container: el,
 		accessToken: token,
@@ -170,9 +297,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 	);
 
 	map.on("error", (e) => {
-		const msg = e.error?.message ?? "Mapbox error";
 		console.error("[mapbox]", e.error);
-		setStatus(msg);
+		setStatus("The map had trouble loading. Check your connection and refresh the page.");
 	});
 
 	let awaitingCloseup = false;
@@ -182,22 +308,76 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		if (!hexPinned) return;
 		hexPinned = false;
 		marker.remove();
+		hideRange();
 		setHexOpen(false);
+		currentPlace = null;
+		syncHomeControls();
+		closeSearchList();
+		const searchBox = document.getElementById("place-search-input");
+		if (searchBox instanceof HTMLInputElement && document.activeElement !== searchBox) {
+			searchBox.value = "";
+		}
+		setStatus(IDLE_HINT, false);
 	}
 
 	const marker = new mapboxgl.Marker({ element: pin, anchor: "bottom" });
 
 	let userInteracting = false;
 	let spinEnabled = true;
+	let spinResume = 0;
+	let programmaticMove = false;
+	let orbiting = false;
+	let pendingBearingReset = false;
+	let bearingResetting = false;
+	let orbitHomeBearing: number | null = null;
+
+	function clearOrbit() {
+		orbiting = false;
+		pendingBearingReset = false;
+		bearingResetting = false;
+		orbitHomeBearing = null;
+		window.clearTimeout(spinResume);
+	}
 
 	function spinGlobe() {
-		if (!spinEnabled || userInteracting || map.getZoom() >= SPIN_ZOOM_CUTOFF) {
+		if (bearingResetting || !spinEnabled || userInteracting || map.getZoom() >= SPIN_ZOOM_CUTOFF) {
 			return;
 		}
 		const distancePerSecond = 360 / 140;
 		const center = map.getCenter();
 		center.lng -= distancePerSecond;
+		programmaticMove = true;
 		map.easeTo({ center, duration: 1000, easing: (n) => n });
+	}
+
+	function orbitPoint() {
+		if (!orbiting || userInteracting || bearingResetting || pendingBearingReset) return;
+		programmaticMove = true;
+		map.easeTo({
+			bearing: map.getBearing() + ORBIT_DEGREES_PER_SECOND,
+			duration: 1000,
+			easing: (n) => n,
+		});
+	}
+
+	function resetOrbitBearing() {
+		pendingBearingReset = false;
+		orbiting = false;
+		const home = orbitHomeBearing;
+		orbitHomeBearing = null;
+		if (home == null) return;
+		const delta = ((map.getBearing() - home + 540) % 360) - 180;
+		if (Math.abs(delta) < 0.75) return;
+		bearingResetting = true;
+		programmaticMove = true;
+		map.easeTo({ bearing: home, duration: 900, easing: closeupEase });
+	}
+
+	function settleAfterGesture() {
+		userInteracting = false;
+		if (pendingBearingReset) resetOrbitBearing();
+		else if (orbiting) orbitPoint();
+		else spinGlobe();
 	}
 
 	let atmosphere: "space" | "ground" = "space";
@@ -305,6 +485,27 @@ import "mapbox-gl/dist/mapbox-gl.css";
 				1.45,
 			],
 		});
+		if (!map.getSource("range")) {
+			map.addSource("range", { type: "geojson", data: rangeFeature });
+			map.addLayer({
+				id: "range-fill",
+				type: "fill",
+				source: "range",
+				paint: { "fill-color": "#e85d4c", "fill-opacity": 0.18 },
+			});
+			map.addLayer({
+				id: "range-line",
+				type: "line",
+				source: "range",
+				paint: {
+					"line-color": "#ffffff",
+					"line-width": 2.5,
+					"line-opacity": 0.95,
+				},
+			});
+		} else {
+			syncRange();
+		}
 		atmosphere = "ground";
 		aimSun(true);
 		syncAtmosphere();
@@ -313,22 +514,73 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		map.resize();
 	});
 
+	// The spin is one long ease. A scroll during that ease gets applied, then the
+	// next animation frame puts the zoom back, so the wheel does nothing.
+	map.getCanvasContainer().addEventListener(
+		"wheel",
+		() => {
+			userInteracting = true;
+			window.clearTimeout(spinResume);
+			if (orbiting || orbitHomeBearing != null) {
+				orbiting = false;
+				pendingBearingReset = true;
+				releaseHex();
+			}
+			if (map.isEasing()) map.stop();
+			spinResume = window.setTimeout(settleAfterGesture, 200);
+		},
+		{ capture: true, passive: true },
+	);
+
 	map.on("mousedown", () => {
 		userInteracting = true;
 	});
-	map.on("dragstart", () => {
+	map.on("dragstart", (event) => {
 		userInteracting = true;
 		spinEnabled = false;
+		window.clearTimeout(spinResume);
+		releaseHex();
+		const pointer = event.originalEvent;
+		const rotating = pointer instanceof MouseEvent && (pointer.button === 2 || pointer.ctrlKey || pointer.metaKey);
+		if (orbiting || orbitHomeBearing != null) {
+			orbiting = false;
+			if (rotating) {
+				pendingBearingReset = false;
+				orbitHomeBearing = null;
+			} else {
+				pendingBearingReset = true;
+			}
+		}
+	});
+	map.on("zoomstart", () => {
+		if (programmaticMove || bearingResetting) return;
+		if (!orbiting && orbitHomeBearing == null) return;
+		orbiting = false;
+		pendingBearingReset = true;
+		releaseHex();
 	});
 	map.on("mouseup", () => {
 		userInteracting = false;
-		spinGlobe();
+		if (pendingBearingReset) {
+			window.clearTimeout(spinResume);
+			spinResume = window.setTimeout(settleAfterGesture, 60);
+			return;
+		}
+		if (orbiting) orbitPoint();
+		else spinGlobe();
 	});
 	map.on("touchend", () => {
 		userInteracting = false;
-		spinGlobe();
+		if (pendingBearingReset) {
+			window.clearTimeout(spinResume);
+			spinResume = window.setTimeout(settleAfterGesture, 60);
+			return;
+		}
+		if (orbiting) orbitPoint();
+		else spinGlobe();
 	});
 	map.on("movestart", () => {
+		if (programmaticMove) return;
 		releaseHex();
 	});
 	map.on("move", () => {
@@ -337,12 +589,25 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		syncLabels();
 	});
 	map.on("moveend", () => {
-		spinGlobe();
-		if (awaitingCloseup && map.getZoom() >= CLOSEUP_ZOOM - 0.35) {
+		const wasProgrammatic = programmaticMove;
+		programmaticMove = false;
+		if (bearingResetting && wasProgrammatic) {
+			bearingResetting = false;
+			return;
+		}
+		if (awaitingCloseup && map.getZoom() >= closeZoom - 0.45) {
 			awaitingCloseup = false;
 			hexPinned = true;
 			setHexOpen(true);
+			orbitHomeBearing = map.getBearing();
+			orbiting = true;
+			pendingBearingReset = false;
+			if (!userInteracting) orbitPoint();
+			return;
 		}
+		if (userInteracting || pendingBearingReset) return;
+		if (orbiting) orbitPoint();
+		else spinGlobe();
 	});
 
 	map.once("load", () => {
@@ -357,51 +622,231 @@ import "mapbox-gl/dist/mapbox-gl.css";
 		}
 	});
 
-	map.on("click", async (e) => {
-		const { lng, lat } = e.lngLat;
+	function visitPlace(lat: number, lng: number, known?: { name: string; displayName: string }) {
+		clearOrbit();
 		spinEnabled = false;
-		setStatus("Looking up…", true);
-
+		abort?.abort();
 		marker.setLngLat([lng, lat]).addTo(map);
+		showRange(lat, lng);
 		hexPinned = false;
 		setHexOpen(false);
 		awaitingCloseup = true;
+		closeZoom = rangeZoom();
 		map.flyTo({
 			center: [lng, lat],
-			zoom: CLOSEUP_ZOOM,
-			pitch: 58,
+			zoom: closeZoom,
+			pitch: 46,
 			bearing: -16,
 			duration: 1900,
 			curve: 1.35,
 			easing: closeupEase,
 			essential: true,
 		});
+		if (known) {
+			saveLocation({ name: known.name, displayName: known.displayName, lat, lng, at: new Date().toISOString() });
+			return;
+		}
+		setStatus("Finding this place…", true);
+		void nameClickedPlace(lat, lng);
+	}
 
+	async function nameClickedPlace(lat: number, lng: number) {
 		try {
 			const result = await reverseGeocode(lat, lng);
-			const name = bestName(result);
-			const loc: SavedLocation = {
+			const name = bestName(result, lat, lng);
+			saveLocation({
 				name,
 				displayName: result.features?.[0]?.place_name ?? name,
 				lat,
 				lng,
 				at: new Date().toISOString(),
-			};
-			saveLocation(loc);
+			});
 		} catch (err) {
 			if ((err as Error).name === "AbortError") return;
-			setStatus("Lookup failed");
 			console.error(err);
+			const name = coordName(lat, lng);
+			saveLocation({ name, displayName: name, lat, lng, at: new Date().toISOString() });
 		}
+	}
+
+	map.on("click", (e) => {
+		visitPlace(e.lngLat.lat, e.lngLat.lng);
 	});
 
-	function resetView() {
+	type SearchHit = { name: string; displayName: string; lat: number; lng: number };
+
+	const searchForm = document.getElementById("place-search");
+	const searchInput = document.getElementById("place-search-input");
+	const searchList = document.getElementById("place-search-results");
+	let searchHits: SearchHit[] = [];
+	let searchIndex = -1;
+	let searchTimer = 0;
+	let searchAbort: AbortController | null = null;
+	let searchSeq = 0;
+
+	function closeSearchList() {
+		if (!(searchList instanceof HTMLElement)) return;
+		searchList.hidden = true;
+		searchList.replaceChildren();
+		searchHits = [];
+		searchIndex = -1;
+	}
+
+	function paintSearchList() {
+		if (!(searchList instanceof HTMLElement)) return;
+		searchList.replaceChildren();
+		if (searchHits.length === 0) {
+			const empty = document.createElement("li");
+			empty.className = "place-empty";
+			empty.textContent = "No places found";
+			searchList.append(empty);
+			searchList.hidden = false;
+			return;
+		}
+		searchHits.forEach((hit, index) => {
+			const item = document.createElement("li");
+			const button = document.createElement("button");
+			button.type = "button";
+			button.setAttribute("role", "option");
+			button.setAttribute("aria-selected", String(index === searchIndex));
+			button.textContent = hit.displayName;
+			button.addEventListener("mousedown", (event) => {
+				event.preventDefault();
+			});
+			button.addEventListener("click", () => {
+				chooseSearchHit(index);
+			});
+			item.append(button);
+			searchList.append(item);
+		});
+		searchList.hidden = false;
+	}
+
+	function chooseSearchHit(index: number) {
+		const hit = searchHits[index];
+		if (!hit || !(searchInput instanceof HTMLInputElement)) return;
+		searchInput.value = hit.name;
+		closeSearchList();
+		searchInput.blur();
+		visitPlace(hit.lat, hit.lng, { name: hit.name, displayName: hit.displayName });
+	}
+
+	async function runPlaceSearch(query: string) {
+		searchAbort?.abort();
+		const seq = ++searchSeq;
+		const ctrl = new AbortController();
+		searchAbort = ctrl;
+		const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json`);
+		url.searchParams.set("access_token", token);
+		url.searchParams.set("autocomplete", "true");
+		url.searchParams.set("limit", "5");
 		const center = map.getCenter();
+		url.searchParams.set("proximity", `${center.lng},${center.lat}`);
+		try {
+			const res = await fetch(url, { signal: ctrl.signal });
+			if (!res.ok) throw new Error(`Mapbox geocode ${res.status}`);
+			const body = (await res.json()) as {
+				features?: Array<{ text?: string; place_name?: string; center?: [number, number] }>;
+			};
+			if (seq !== searchSeq) return;
+			searchHits = [];
+			for (const feature of body.features ?? []) {
+				const lng = feature.center?.[0];
+				const lat = feature.center?.[1];
+				if (lat == null || lng == null) continue;
+				const name = feature.text || feature.place_name || coordName(lat, lng);
+				searchHits.push({
+					name,
+					displayName: feature.place_name || name,
+					lat,
+					lng,
+				});
+			}
+			searchIndex = searchHits.length > 0 ? 0 : -1;
+			paintSearchList();
+		} catch (err) {
+			if ((err as Error).name === "AbortError" || seq !== searchSeq) return;
+			console.error(err);
+			searchHits = [];
+			searchIndex = -1;
+			paintSearchList();
+		}
+	}
+
+	if (searchForm instanceof HTMLFormElement && searchInput instanceof HTMLInputElement && searchList instanceof HTMLElement) {
+		searchForm.addEventListener("submit", (event) => {
+			event.preventDefault();
+			if (searchIndex >= 0) chooseSearchHit(searchIndex);
+			else if (searchHits.length > 0) chooseSearchHit(0);
+		});
+		searchInput.addEventListener("input", () => {
+			window.clearTimeout(searchTimer);
+			const query = searchInput.value.trim();
+			if (query.length < 2) {
+				searchAbort?.abort();
+				closeSearchList();
+				return;
+			}
+			searchTimer = window.setTimeout(() => {
+				void runPlaceSearch(query);
+			}, 180);
+		});
+		searchInput.addEventListener("keydown", (event) => {
+			if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+				if (searchList.hidden || searchHits.length === 0) return;
+				event.preventDefault();
+				const step = event.key === "ArrowDown" ? 1 : -1;
+				searchIndex = (searchIndex + step + searchHits.length) % searchHits.length;
+				paintSearchList();
+				return;
+			}
+			if (event.key === "Escape") {
+				event.stopPropagation();
+				if (!searchList.hidden) closeSearchList();
+				else searchInput.blur();
+			}
+		});
+		searchInput.addEventListener("focus", () => {
+			if (searchHits.length > 0 && searchInput.value.trim().length >= 2) paintSearchList();
+		});
+	}
+
+	function bearingFromNorth() {
+		return Math.abs(((map.getBearing() + 540) % 360) - 180);
+	}
+
+	function inDefaultView() {
+		return (
+			!hexPinned &&
+			!awaitingCloseup &&
+			Math.abs(map.getZoom() - fitZoom()) < 0.15 &&
+			Math.abs(map.getPitch() - OVERVIEW.pitch) < 1 &&
+			bearingFromNorth() < 1
+		);
+	}
+
+	function resetView() {
+		clearOrbit();
 		marker.remove();
+		hideRange();
 		awaitingCloseup = false;
 		hexPinned = false;
+		currentPlace = null;
+		syncHomeControls();
 		setHexOpen(false);
-		setStatus("Click the globe", false);
+		closeSearchList();
+		if (searchInput instanceof HTMLInputElement) searchInput.value = "";
+		setStatus(IDLE_HINT, false);
+		spinEnabled = true;
+		// Already the spinning overview. A flyTo here only cancels that spin.
+		if (inDefaultView()) {
+			if (!map.isEasing()) spinGlobe();
+			return;
+		}
+		const center = map.getCenter();
+		// Keep the stop() inside flyTo from chaining a new spin before the flight starts.
+		spinEnabled = false;
+		programmaticMove = true;
 		map.flyTo({
 			center: [center.lng, center.lat],
 			zoom: fitZoom(),
@@ -410,8 +855,57 @@ import "mapbox-gl/dist/mapbox-gl.css";
 			duration: 1800,
 			essential: true,
 		});
-		spinEnabled = true;
+		const resumeSpin = () => {
+			spinEnabled = true;
+			programmaticMove = false;
+			spinGlobe();
+		};
+		if (map.isMoving() || map.isEasing()) map.once("moveend", resumeSpin);
+		else resumeSpin();
 	}
 
 	onReset(resetView);
+
+	document.getElementById("home-save")?.addEventListener("click", () => {
+		if (!currentPlace) return;
+		savedHome = currentPlace;
+		localStorage.setItem(HOME_KEY, JSON.stringify(savedHome));
+		syncHomeControls();
+	});
+
+	document.getElementById("home-go")?.addEventListener("click", () => {
+		if (savedHome) {
+			visitPlace(savedHome.lat, savedHome.lng, {
+				name: savedHome.name,
+				displayName: savedHome.displayName || savedHome.name,
+			});
+			return;
+		}
+		const hint = document.getElementById("home-hint");
+		const go = document.getElementById("home-go");
+		if (!(hint instanceof HTMLElement) || !(go instanceof HTMLButtonElement)) return;
+		hint.hidden = !hint.hidden;
+		go.setAttribute("aria-expanded", String(!hint.hidden));
+	});
+
+	document.getElementById("home-clear")?.addEventListener("click", () => {
+		savedHome = null;
+		localStorage.removeItem(HOME_KEY);
+		hideHomeHint();
+		syncHomeControls();
+	});
+
+	document.addEventListener("click", (event) => {
+		const slot = document.getElementById("home-slot");
+		if (slot instanceof HTMLElement && event.target instanceof Node && slot.contains(event.target)) return;
+		hideHomeHint();
+	});
+
+	syncHomeControls();
+
+	window.addEventListener("map:pane", () => {
+		closeSearchList();
+		hideHomeHint();
+		if (searchInput instanceof HTMLInputElement) searchInput.blur();
+	});
 </script>

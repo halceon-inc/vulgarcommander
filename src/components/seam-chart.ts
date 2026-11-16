@@ -217,9 +217,9 @@ function drawScatter(host: HTMLElement, series: RingSeries, tip: HTMLElement, le
 	});
 
 	legend.innerHTML = [
-		`<span><i class="sw point"></i>Week of year</span>`,
-		`<span><i class="sw dash"></i>1 : 1</span>`,
-		`<span><i class="sw now"></i>Fit <span class="mono">${(10 ** fit.a).toFixed(1)} × before<sup>${fit.b.toFixed(2)}</sup></span></span>`,
+		`<span><i class="sw point"></i>One week of the year</span>`,
+		`<span><i class="sw dash"></i>No change</span>`,
+		`<span><i class="sw now"></i>Overall pattern</span>`,
 	].join("");
 }
 
@@ -257,15 +257,15 @@ export function drawSeam(
 		const ratio = afterMean / beforeMean;
 		const change =
 			ratio >= 1.05
-				? `<b>${ratio.toFixed(1)}×</b> as many once VIIRS joined`
+				? `<b>${ratio.toFixed(1)}×</b> as many once the sharper VIIRS camera joined`
 				: ratio <= 0.95
-					? `<b>${Math.round((1 - ratio) * 100)}% fewer</b> even with VIIRS`
-					: `<b>about the same</b> even with VIIRS`;
+					? `<b>${Math.round((1 - ratio) * 100)}% fewer</b> even with the sharper VIIRS camera`
+					: `<b>about the same</b> even with the sharper VIIRS camera`;
 		readout.innerHTML = `Fire days per year averaged <b>${full(beforeMean)}</b> before 2012 and <b>${full(afterMean)}</b> from 2012 on, ${change}.`;
 	} else if (afterRows.length) {
 		readout.innerHTML = `No fire days before 2012. From 2012 on, the area averaged <b>${full(afterMean)}</b> a year.`;
 	} else {
-		readout.textContent = "The record ends before VIIRS joins in 2012.";
+		readout.textContent = "The record ends before the sharper VIIRS camera joined in 2012.";
 	}
 
 	const width = 640;
@@ -325,8 +325,8 @@ export function drawSeam(
 	}
 
 	if (showSeam) {
-		text(svg, "MODIS ONLY", { x: (left + seamX) / 2, y: top - 10, class: "seam-era-label", "text-anchor": "middle" });
-		text(svg, "MODIS + VIIRS", {
+		text(svg, "OLDER CAMERA ONLY", { x: (left + seamX) / 2, y: top - 10, class: "seam-era-label", "text-anchor": "middle" });
+		text(svg, "OLDER + SHARPER CAMERA", {
 			x: (seamX + left + plotW) / 2,
 			y: top - 10,
 			class: "seam-era-label",
@@ -417,7 +417,7 @@ export function drawSeam(
 		} else {
 			ring.setAttribute("visibility", "hidden");
 		}
-		const era = row.year < SEAM_YEAR ? "MODIS only" : "MODIS + VIIRS";
+		const era = row.year < SEAM_YEAR ? "Older camera (MODIS) only" : "Older + sharper camera (MODIS + VIIRS)";
 		const count = row.total === 0 ? "No fire days" : `<b>${full(row.total)}</b> fire days`;
 		tip.innerHTML = `<b>${row.year}</b> · ${era}<br>${count}`;
 		tip.hidden = false;
@@ -431,9 +431,9 @@ export function drawSeam(
 
 	legend.innerHTML = [
 		`<span><i class="sw now"></i>Fire days</span>`,
-		`<span><i class="sw dash"></i>Era average</span>`,
-		`<span><i class="sw modis"></i>MODIS in orbit</span>`,
-		`<span><i class="sw viirs"></i>VIIRS in orbit</span>`,
+		`<span><i class="sw dash"></i>Average before and after 2012</span>`,
+		`<span><i class="sw modis"></i>Older camera (MODIS) watching</span>`,
+		`<span><i class="sw viirs"></i>Sharper camera (VIIRS) watching</span>`,
 	].join("");
 	drawScatter(scatter, series, tip, scatterLegend);
 }

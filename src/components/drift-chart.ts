@@ -118,7 +118,7 @@ function placeTip(tip: HTMLElement, event: PointerEvent) {
 }
 
 function ratePhrase(days: number, edge: "start" | "end") {
-	const amount = `${Math.abs(days).toFixed(1)} days per decade`;
+	const amount = `${Math.abs(days).toFixed(1)} days every 10 years`;
 	if (Math.abs(days) < 0.05) return `the ${edge} held steady`;
 	if (days < 0) return `the ${edge} moved earlier by <b>${amount}</b>`;
 	return `the ${edge} moved later by <b>${amount}</b>`;
@@ -248,7 +248,7 @@ export function drawDrift(host: HTMLElement, series: RingSeries, tip: HTMLElemen
 			class: "drift-label ink",
 			"text-anchor": crowded ? "start" : "end",
 		});
-		text(svg, `${startRate < 0 ? "−" : "+"}${Math.abs(startRate).toFixed(1)} days/decade`, {
+		text(svg, `${startRate < 0 ? "−" : "+"}${Math.abs(startRate).toFixed(1)} days per 10 yrs`, {
 			x: crowded ? left : startX,
 			y: labelY + 13,
 			class: "drift-year",
@@ -260,7 +260,7 @@ export function drawDrift(host: HTMLElement, series: RingSeries, tip: HTMLElemen
 			class: "drift-label ink",
 			"text-anchor": crowded ? "end" : "start",
 		});
-		text(svg, `${endRate < 0 ? "−" : "+"}${Math.abs(endRate).toFixed(1)} days/decade`, {
+		text(svg, `${endRate < 0 ? "−" : "+"}${Math.abs(endRate).toFixed(1)} days per 10 yrs`, {
 			x: crowded ? left + plotW : endX,
 			y: labelY + 13,
 			class: "drift-year",
@@ -290,10 +290,10 @@ export function drawDrift(host: HTMLElement, series: RingSeries, tip: HTMLElemen
 	}
 
 	legend.innerHTML = [
-		`<span><i class="sw thin"></i>10% to 90% of the year's fire days</span>`,
-		`<span><i class="sw core"></i>25% to 75%</span>`,
-		`<span><i class="sw tick"></i>Halfway date</span>`,
-		`<span><i class="sw dash"></i>Trend</span>`,
+		`<span><i class="sw thin"></i>Main fire season (middle 80% of fires)</span>`,
+		`<span><i class="sw core"></i>Peak (middle half)</span>`,
+		`<span><i class="sw tick"></i>Date half the year's fires had happened</span>`,
+		`<span><i class="sw dash"></i>Trend over the years</span>`,
 		burned.length
 			? rampLegend("Year total", (t) => lerp(SEQ, 0.12 + 0.88 * t), compact(minTotal), compact(maxTotal), 80)
 			: "",

@@ -1,55 +1,109 @@
 <div id="globe-vignette"></div>
 <div id="globe-pin" class="globe-pin">
-	<svg viewBox="0 0 24 36" aria-hidden="true">
-		<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z"></path>
-		<circle cx="12" cy="12" r="4.5"></circle>
-	</svg>
+	<div class="pin-body">
+		<svg viewBox="0 0 24 36" aria-hidden="true">
+			<path class="pin-shape" d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z"></path>
+			<circle class="pin-hole" cx="12" cy="12" r="4.5"></circle>
+		</svg>
+		<button type="button" class="pin-cancel" aria-label="Clear this place" title="Clear this place">
+			<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 2.2l7.6 7.6M9.8 2.2l-7.6 7.6"></path></svg>
+		</button>
+	</div>
 </div>
 <div id="hex-panel" hidden>
 	<div class="hex-grid">
-		<button type="button" class="hex-cell" data-slot="0" data-graph="rings" style="--q: 1; --r: 0">
+		<button type="button" class="hex-cell" data-slot="0" data-graph="rings" style="--q: 1; --r: 0" title="Every year since 2000 drawn as a ring, like a tree stump">
 			<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5.5"></circle><circle cx="12" cy="12" r="2"></circle></svg>
-			<span class="hex-name">Rings</span>
-			<span class="hex-sub">Year by year</span>
+			<span class="hex-name">All years</span>
+			<span class="hex-sub">Fire rings</span>
 		</button>
-		<button type="button" class="hex-cell" data-slot="1" data-graph="calendar" style="--q: 1; --r: -1">
+		<button type="button" class="hex-cell" data-slot="1" data-graph="calendar" style="--q: 1; --r: -1" title="Which weeks of the year usually have fires">
 			<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2"></rect><path d="M3.5 9.5h17M3.5 14.5h17M9 9.5v10M14.5 9.5v10"></path></svg>
-			<span class="hex-name">Calendar</span>
-			<span class="hex-sub">Week by week</span>
+			<span class="hex-name">Busy weeks</span>
+			<span class="hex-sub">Fire calendar</span>
 		</button>
-		<button type="button" class="hex-cell" data-slot="2" data-graph="race" style="--q: 0; --r: -1">
+		<button type="button" class="hex-cell" data-slot="2" data-graph="race" style="--q: 0; --r: -1" title="Is the latest year worse or better than past years?">
 			<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 20.5h17"></path><path d="M4 18.5c6-1 10-5 16-12" pathLength="1"></path><path d="M4 18.5c6 0 10-2.5 16-6" opacity="0.45" pathLength="1"></path></svg>
-			<span class="hex-name">Race</span>
-			<span class="hex-sub">This year vs. past</span>
+			<span class="hex-name">This year</span>
+			<span class="hex-sub">vs. past years</span>
 		</button>
-		<button type="button" class="hex-cell" data-slot="3" data-graph="drift" style="--q: -1; --r: 0">
+		<button type="button" class="hex-cell" data-slot="3" data-graph="drift" style="--q: -1; --r: 0" title="Is fire season starting or ending earlier or later than it used to?">
 			<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M7 12h10M10 18h10"></path><path d="M8.5 4v4M12 10v4M15 16v4"></path></svg>
-			<span class="hex-name">Drift</span>
-			<span class="hex-sub">Season timing</span>
+			<span class="hex-name">Season shift</span>
+			<span class="hex-sub">Earlier or later?</span>
 		</button>
-		<button type="button" class="hex-cell" data-slot="4" data-graph="seam" style="--q: -1; --r: 1">
+		<button type="button" class="hex-cell" data-slot="4" data-graph="seam" style="--q: -1; --r: 1" title="A sharper satellite joined in 2012. See how that changes the counts.">
 			<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5h7v-9h10" pathLength="1"></path><path d="M10.5 3.5v17" stroke-dasharray="2 2.5"></path></svg>
-			<span class="hex-name">Seam</span>
-			<span class="hex-sub">Sensor change</span>
+			<span class="hex-name">Satellites</span>
+			<span class="hex-sub">The 2012 jump</span>
 		</button>
-		<button type="button" class="hex-cell" data-graph="ask" data-slot="5" style="--q: 0; --r: 1">
+		<button type="button" class="hex-cell" data-graph="ask" data-slot="5" style="--q: 0; --r: 1" title="Type a question in plain English">
 			<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4.5h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H11l-4.5 4v-4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"></path><path class="dot" d="M9 10h.01"></path><path class="dot" d="M12 10h.01"></path><path class="dot" d="M15 10h.01"></path></svg>
 			<span class="hex-name">Ask</span>
-			<span class="hex-sub">About this place</span>
+			<span class="hex-sub">Type a question</span>
 		</button>
+	</div>
+	<p class="hex-hint">Pick a view to explore this place. Press Esc to go back.</p>
+</div>
+<div id="intro" class="chart-frame" hidden>
+	<div class="chart-card chart-card--intro" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+		<header class="chart-head">
+			<div>
+				<p class="chart-eyebrow">Welcome</p>
+				<h2 id="intro-title">When and where do fires burn?</h2>
+			</div>
+			<button type="button" class="chart-close intro-close" aria-label="Close">
+				<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+			</button>
+		</header>
+		<p class="intro-lede">NASA satellites have scanned the whole planet for fires every day since 2000. This globe lets you look up the fire history of any place on Earth.</p>
+		<ol class="intro-steps">
+			<li><span><b>Find a place.</b> Drag to spin the globe, scroll to zoom, then click anywhere.</span></li>
+			<li><span><b>Pick a view.</b> Six buttons appear. Each one answers a different question about fires near that spot.</span></li>
+			<li><span><b>Look closer.</b> Hover over a chart for exact numbers. Press <kbd>Esc</kbd> or <span class="intro-x">×</span> to go back.</span></li>
+		</ol>
+		<dl class="intro-terms">
+			<div>
+				<dt>Fire day</dt>
+				<dd>A day when a satellite saw at least one fire in a small patch of land, about 7 miles (11 km) across. Every view counts fire days within 100 miles of where you click, so a busy year can have thousands of them.</dd>
+			</div>
+			<div>
+				<dt>MODIS and VIIRS</dt>
+				<dd>The fire-spotting cameras on NASA and NOAA satellites. MODIS has been watching since 2000. VIIRS is sharper and joined in 2012, so it can spot smaller fires.</dd>
+			</div>
+		</dl>
+		<section class="intro-more" aria-labelledby="intro-how">
+			<h3 id="intro-how">How the record is made</h3>
+			<p>Click the globe, search for a place, or jump to Home. A 100-mile circle is drawn, and that spot’s fire calendar is loaded week by week, from 2000 onward. The numbers are NASA’s daily detections after the cleanup below. Weeks the archive does not cover are left blank instead of counted as zero.</p>
+		</section>
+		<section class="intro-more" aria-labelledby="intro-clean">
+			<h3 id="intro-clean">How the data was sanitized</h3>
+			<p>The raw files are one row per satellite detection. Most of each row is thrown out before anything is stored. What remains is a count of fire days per patch, per week:</p>
+			<ul>
+				<li>Only vegetation fires are kept. In the source files that is type 0. Volcanoes, industry, and other hot spots are dropped, along with broken dates and positions off the planet.</li>
+				<li>Each kept detection is snapped to a 0.1° patch, about 7 miles (11 km) on a side. A patch counts at most once per UTC day, so many pixels of the same fire become one fire day.</li>
+				<li>Those days are totaled into ISO weeks. A rare 53rd week is folded into week 52. The stored row is only the patch, the year, the week, and the number of fire days.</li>
+				<li>Confidence, fire brightness, pixel size, and which pass of the satellite saw the fire are not kept.</li>
+				<li>From 2012, Suomi-NPP VIIRS is cleaned the same way and added only where MODIS had no fire that day. A day both cameras saw stays one day. NOAA-20 and NOAA-21 are not included. In 2012, VIIRS starts on day 19 of the year.</li>
+				<li>The MODIS archive itself starts in November 2000, at week 44. 2026 is not a full year yet, so those weeks stay blank.</li>
+			</ul>
+		</section>
+		<p class="intro-source"><a href="https://github.com/halceon-inc/vulgarcommander" target="_blank" rel="noopener noreferrer">Source on GitHub</a></p>
+		<button type="button" class="intro-go">Start exploring</button>
 	</div>
 </div>
 <div id="ring-frame" class="chart-frame" hidden>
 	<div class="chart-card chart-card--ring" role="dialog" aria-modal="true" aria-labelledby="ring-frame-title">
 		<header class="chart-head">
 			<div>
-				<p class="chart-eyebrow">Fire-scar rings · 100 miles</p>
+				<p class="chart-eyebrow">All years · within 100 miles</p>
 				<h2 id="ring-frame-title">Fire history</h2>
 			</div>
 			<button type="button" id="ring-frame-close" class="chart-close" aria-label="Close">
 				<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
 			</button>
 		</header>
+		<p class="chart-help"><b>How to read this:</b> each ring is one year, oldest in the middle. Go clockwise from the top to move through the year, January to December. Brighter colour means more fires that week.</p>
 		<p id="ring-readout" class="chart-readout"></p>
 		<div class="chart-panel">
 			<div id="ring-chart" class="ring-host" data-state="idle"></div>
@@ -61,19 +115,20 @@
 	<div class="chart-card chart-card--calendar" role="dialog" aria-modal="true" aria-labelledby="calendar-frame-title">
 		<header class="chart-head">
 			<div>
-				<p class="chart-eyebrow">One calendar · 100 miles</p>
+				<p class="chart-eyebrow">Busy weeks · within 100 miles</p>
 				<h2 id="calendar-frame-title">Fire history</h2>
 			</div>
 			<div class="chart-actions">
 				<div class="cal-toggle" role="group" aria-label="Colour cells by">
-					<button type="button" data-mode="count" aria-pressed="true">Fire days</button>
-					<button type="button" data-mode="departure" aria-pressed="false">Departure</button>
+					<button type="button" data-mode="count" aria-pressed="true" title="Colour by how many fire days each week had">How many fires</button>
+					<button type="button" data-mode="departure" aria-pressed="false" title="Colour by whether each week was busier or quieter than that same week in other years">Compared to normal</button>
 				</div>
 				<button type="button" id="calendar-frame-close" class="chart-close" aria-label="Close">
 					<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
 				</button>
 			</div>
 		</header>
+		<p class="chart-help"><b>How to read this:</b> each row is a year and each square is one week. Brighter squares had more fires. The bars on top show a typical week, and the bars on the right show each year's total.</p>
 		<p id="calendar-readout" class="chart-readout"></p>
 		<div class="chart-panel">
 			<div id="calendar-chart" class="calendar-host" data-state="idle"></div>
@@ -89,13 +144,14 @@
 	<div class="chart-card" role="dialog" aria-modal="true" aria-labelledby="race-frame-title">
 		<header class="chart-head">
 			<div>
-				<p class="chart-eyebrow">Season race · 100 miles</p>
+				<p class="chart-eyebrow">This year vs. past years · within 100 miles</p>
 				<h2 id="race-frame-title">Fire history</h2>
 			</div>
 			<button type="button" id="race-frame-close" class="chart-close" aria-label="Close">
 				<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
 			</button>
 		</header>
+		<p class="chart-help"><b>How to read this:</b> the orange line adds up fire days as the year goes on. The grey shading shows where past years landed. If orange is near the top, this year is worse than most.</p>
 		<p id="race-readout" class="chart-readout"></p>
 		<div class="chart-panel">
 			<div id="race-chart" class="race-host" data-state="idle"></div>
@@ -107,13 +163,14 @@
 	<div class="chart-card" role="dialog" aria-modal="true" aria-labelledby="drift-frame-title">
 		<header class="chart-head">
 			<div>
-				<p class="chart-eyebrow">Season drift · 100 miles</p>
+				<p class="chart-eyebrow">Season shift · within 100 miles</p>
 				<h2 id="drift-frame-title">Fire history</h2>
 			</div>
 			<button type="button" id="drift-frame-close" class="chart-close" aria-label="Close">
 				<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
 			</button>
 		</header>
+		<p class="chart-help"><b>How to read this:</b> each bar is one year, stretching across the months when most of that year's fires happened. If the bars slide left over the years, the season is starting earlier. If they slide right, it is starting later.</p>
 		<p id="drift-readout" class="chart-readout"></p>
 		<div class="chart-panel">
 			<div id="drift-chart" class="race-host" data-state="idle"></div>
@@ -125,34 +182,35 @@
 	<div class="chart-card chart-card--wide" role="dialog" aria-modal="true" aria-labelledby="seam-frame-title">
 		<header class="chart-head">
 			<div>
-				<p class="chart-eyebrow">Show the seam · 100 miles</p>
+				<p class="chart-eyebrow">Satellites · within 100 miles</p>
 				<h2 id="seam-frame-title">Fire history</h2>
 			</div>
 			<button type="button" id="seam-frame-close" class="chart-close" aria-label="Close">
 				<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
 			</button>
 		</header>
+		<p class="chart-help"><b>Why this matters:</b> in 2012 a sharper satellite camera (VIIRS) started watching for fires. It spots small fires the older cameras (MODIS) miss, so counts can jump after 2012 even if there weren't really more fires.</p>
 		<p id="seam-readout" class="chart-readout"></p>
 		<div class="seam-grid">
 			<section class="chart-panel seam-panel">
-				<p class="seam-cap">Fire days per year <span>log scale, with satellites in orbit</span></p>
+				<p class="seam-cap">Fire days per year <span>each step up the side is 10× more, and the bars at the bottom show which satellites were watching</span></p>
 				<div id="seam-chart" class="race-host" data-state="idle"></div>
 				<div id="seam-legend" class="ring-legend"></div>
 			</section>
 			<section class="chart-panel seam-panel">
-				<p class="seam-cap">Same week, before and after 2012 <span>each week's average in each era</span></p>
+				<p class="seam-cap">Each week, before vs. after 2012 <span>dots above the dashed line got busier after 2012</span></p>
 				<div id="seam-scatter" class="race-host" data-state="idle"></div>
 				<div id="seam-scatter-legend" class="ring-legend"></div>
 			</section>
 		</div>
-		<p class="seam-note">Both charts use the merged day count, so a day that both sensors recorded counts once.</p>
+		<p class="seam-note">If both satellites saw the same fire on the same day, it is only counted once.</p>
 	</div>
 </div>
 <div id="ask-frame" class="chart-frame" hidden>
 	<div class="chart-card chart-card--ask" role="dialog" aria-modal="true" aria-labelledby="ask-frame-title">
 		<header class="chart-head">
 			<div>
-				<p class="chart-eyebrow">Ask · 100 miles</p>
+				<p class="chart-eyebrow">Ask a question · within 100 miles</p>
 				<h2 id="ask-frame-title">Fire history</h2>
 			</div>
 			<button type="button" id="ask-frame-close" class="chart-close" aria-label="Close">
@@ -175,21 +233,42 @@
 					<span>Has the season shifted?</span>
 					<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"></path></svg>
 				</button>
+				<button type="button" data-ask="How likely is a fire here this year?">
+					<span>How likely is a fire here this year?</span>
+					<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"></path></svg>
+				</button>
 			</div>
 		</div>
 		<form id="ask-form" class="ask-form">
-			<input id="ask-input" type="text" name="question" autocomplete="off" maxlength="2000" placeholder="Ask about this place’s fire record" aria-label="Your question" />
+			<input id="ask-input" type="text" name="question" autocomplete="off" maxlength="2000" placeholder="e.g. When is fire season here?" aria-label="Your question" />
 			<button type="submit" id="ask-send" aria-label="Send">
 				<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3.5M3.75 7.5 8 3.25l4.25 4.25"></path></svg>
 			</button>
 		</form>
-		<p class="ask-foot">Answers are generated from the archive and can be wrong. Check figures against the charts.</p>
+		<p class="ask-foot">Answers are written by AI and can be wrong. Double-check numbers against the charts.</p>
 	</div>
 </div>
 <div id="ring-tip" hidden></div>
+<div id="place-finder">
+	<form id="place-search" role="search">
+		<label class="visually-hidden" for="place-search-input">Search for a place</label>
+		<input id="place-search-input" type="search" placeholder="Search for a place" autocomplete="off" spellcheck="false" enterkeyhint="search" />
+		<ul id="place-search-results" role="listbox" hidden></ul>
+	</form>
+	<div id="home-slot" class="is-unset">
+		<button type="button" id="home-go" aria-expanded="false" aria-controls="home-hint">Home</button>
+		<button type="button" id="home-clear" hidden aria-label="Remove home" title="Remove home">
+			<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 2.2l7.6 7.6M9.8 2.2l-7.6 7.6"></path></svg>
+		</button>
+		<p id="home-hint" hidden>Search for a place or click the map. Then choose Set as home.</p>
+	</div>
+</div>
 <aside id="location-hud" aria-live="polite">
-	<span id="location-name">Click the globe</span>
-	<button type="button" id="globe-reset" hidden>Reset view</button>
+	<span id="location-name"></span>
+	<button type="button" id="home-save" hidden>Set as home</button>
+	<button type="button" id="csv-download" hidden>Download CSV</button>
+	<button type="button" id="globe-reset">Back to globe</button>
+	<button type="button" id="intro-open" aria-label="How to use this map" title="How to use this map">?</button>
 </aside>
 
 <style is:global>
@@ -223,72 +302,319 @@
 		visibility: visible;
 	}
 
-	.globe-pin svg {
+	.pin-body {
+		position: relative;
+		width: 100%;
+		height: 100%;
+	}
+
+	.pin-body > svg {
 		display: block;
 		width: 100%;
 		height: 100%;
 		overflow: visible;
 	}
 
-	.globe-pin path {
+	.pin-shape {
 		fill: #e85d4c;
 		stroke: #fff;
 		stroke-width: 1.25;
 		paint-order: stroke fill;
 	}
 
-	.globe-pin circle {
+	.pin-hole {
 		fill: #fff;
+	}
+
+	.pin-cancel {
+		position: absolute;
+		top: -6px;
+		right: -8px;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		width: 16px;
+		height: 16px;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: #fff;
+		color: #1a1210;
+		cursor: pointer;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+	}
+
+	.pin-cancel svg {
+		display: block;
+		width: 12px;
+		height: 12px;
+		overflow: visible;
+	}
+
+	.pin-cancel path {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2.4;
+		stroke-linecap: round;
+	}
+
+	.pin-cancel:hover {
+		background: #1a1210;
+		color: #fff;
+	}
+
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	#place-finder {
+		position: fixed;
+		z-index: 11;
+		top: 1.15rem;
+		left: 50%;
+		display: flex;
+		align-items: flex-start;
+		gap: 0.55rem;
+		width: min(40rem, calc(100vw - 8.5rem));
+		transform: translateX(-50%);
+	}
+
+	body:has(.chart-frame:not([hidden])) #place-finder {
+		visibility: hidden;
+		pointer-events: none;
+	}
+
+	#place-search {
+		position: relative;
+		flex: 1;
+		min-width: 0;
+	}
+
+	#home-slot {
+		position: relative;
+		display: flex;
+		flex: none;
+		align-items: center;
+		border-radius: 999px;
+		background: #f6f3ee;
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+	}
+
+	#home-slot.is-unset {
+		background: #cfc9c0;
+		box-shadow: none;
+	}
+
+	#home-slot.is-unset:hover {
+		background: #ddd8d0;
+	}
+
+	#home-go {
+		appearance: none;
+		margin: 0;
+		padding: 0.78rem 1.05rem;
+		border: 0;
+		border-radius: 999px;
+		background: transparent;
+		color: #1a1210;
+		font: 650 16px/1.3 ui-sans-serif, system-ui, sans-serif;
+		cursor: pointer;
+	}
+
+	#home-slot.is-unset #home-go {
+		color: #6d645c;
+	}
+
+	#home-slot:not(.is-unset) #home-go:hover {
+		background: #fff;
+	}
+
+	#home-clear {
+		appearance: none;
+		display: grid;
+		place-items: center;
+		width: 1.7rem;
+		height: 1.7rem;
+		margin: 0 0.4rem 0 0;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: rgba(26, 18, 16, 0.08);
+		color: #1a1210;
+		cursor: pointer;
+	}
+
+	#home-clear svg {
+		width: 11px;
+		height: 11px;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.8;
+		stroke-linecap: round;
+	}
+
+	#home-clear[hidden] {
+		display: none;
+	}
+
+	#home-clear:hover {
+		background: #1a1210;
+		color: #fff;
+	}
+
+	#home-hint {
+		position: absolute;
+		top: calc(100% + 0.45rem);
+		right: 0;
+		width: 16.5rem;
+		margin: 0;
+		padding: 0.75rem 0.9rem;
+		background: #f6f3ee;
+		color: #1a1210;
+		border-radius: 16px;
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+		font: 550 14px/1.4 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	#place-search-input {
+		width: 100%;
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0.78rem 1.15rem;
+		border: 0;
+		border-radius: 999px;
+		background: #f6f3ee;
+		color: #1a1210;
+		font: 650 16px/1.3 ui-sans-serif, system-ui, sans-serif;
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+	}
+
+	#place-search-input::placeholder {
+		color: #6d645c;
+	}
+
+	#place-search-input:focus {
+		outline: 2px solid #d95926;
+		outline-offset: 2px;
+	}
+
+	#place-search-results {
+		margin: 0.4rem 0 0;
+		padding: 0.35rem;
+		list-style: none;
+		background: #f6f3ee;
+		border-radius: 18px;
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+		max-height: min(18rem, 42vh);
+		overflow: auto;
+	}
+
+	#place-search-results button {
+		display: block;
+		width: 100%;
+		margin: 0;
+		padding: 0.55rem 0.8rem;
+		border: 0;
+		border-radius: 12px;
+		background: transparent;
+		color: #1a1210;
+		font: 550 15px/1.35 ui-sans-serif, system-ui, sans-serif;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	#place-search-results button[aria-selected="true"],
+	#place-search-results button:hover {
+		background: rgba(217, 89, 38, 0.16);
+	}
+
+	#place-search-results .place-empty {
+		margin: 0;
+		padding: 0.6rem 0.8rem;
+		color: #6d645c;
+		font: 550 15px/1.35 ui-sans-serif, system-ui, sans-serif;
 	}
 
 	#location-hud {
 		position: fixed;
 		z-index: 10;
-		left: 1.1rem;
-		bottom: 1.1rem;
+		left: 1.25rem;
+		bottom: 2.75rem;
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.55rem 0.6rem 0.55rem 0.95rem;
-		background: rgba(6, 10, 20, 0.58);
-		border: 1px solid rgba(255, 255, 255, 0.14);
+		gap: 0.7rem;
+		max-width: min(42rem, calc(100vw - 2.5rem));
+		padding: 0.75rem 0.7rem 0.75rem 1.05rem;
+		background: #f6f3ee;
 		border-radius: 999px;
-		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-		backdrop-filter: blur(14px);
-		font: 500 13px/1.2 ui-sans-serif, system-ui, sans-serif;
-		letter-spacing: 0.03em;
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+		color: #1a1210;
+		font: 650 17px/1.25 ui-sans-serif, system-ui, sans-serif;
+		letter-spacing: 0.01em;
 	}
 
 	#location-name {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.6rem;
+		min-width: 0;
 	}
 
 	#location-name::before {
 		content: "";
-		width: 6px;
-		height: 6px;
+		flex: none;
+		width: 9px;
+		height: 9px;
 		border-radius: 50%;
-		background: #d95926;
-		box-shadow: 0 0 0 3px rgba(217, 89, 38, 0.18);
+		background: #ff6a33;
+		box-shadow: 0 0 0 4px rgba(255, 106, 51, 0.28);
 	}
 
+	#home-save,
+	#csv-download,
 	#globe-reset {
 		appearance: none;
+		flex: none;
 		margin: 0;
-		padding: 0.35rem 0.7rem;
+		padding: 0.5rem 0.9rem;
 		border: 0;
 		border-radius: 999px;
-		background: rgba(255, 255, 255, 0.1);
-		color: inherit;
+		background: rgba(26, 18, 16, 0.08);
+		color: #1a1210;
 		font: inherit;
-		letter-spacing: 0.04em;
+		letter-spacing: 0.01em;
 		cursor: pointer;
 	}
 
+	#csv-download {
+		background: #d95926;
+		color: #fff;
+	}
+
+	#csv-download:hover {
+		background: #b8431c;
+		color: #fff;
+	}
+
+	#home-save:hover:not(:disabled),
 	#globe-reset:hover {
-		background: rgba(255, 255, 255, 0.18);
+		background: #1a1210;
+		color: #fff;
+	}
+
+	#home-save:disabled {
+		background: rgba(217, 89, 38, 0.16);
+		color: #9a2e22;
+		cursor: default;
 	}
 
 	/* honeycomb thing on the globe */
@@ -1193,6 +1519,204 @@
 		pointer-events: none;
 	}
 
+	.chart-help {
+		margin: -0.2rem 0 0.8rem;
+		max-width: 100ch;
+		color: #9fadb5;
+		font: 450 14px/1.5 ui-sans-serif, system-ui, sans-serif;
+		text-wrap: pretty;
+	}
+
+	.chart-help b {
+		color: #e8edef;
+		font-weight: 600;
+	}
+
+	.hex-hint {
+		position: absolute;
+		left: 50%;
+		top: 1.1rem;
+		margin: 0;
+		padding: 0.5rem 0.95rem;
+		transform: translateX(-50%);
+		background: rgba(6, 10, 20, 0.62);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		border-radius: 999px;
+		backdrop-filter: blur(10px);
+		color: #cfd8dc;
+		font: 500 13px/1.3 ui-sans-serif, system-ui, sans-serif;
+		width: max-content;
+		max-width: calc(100vw - 2rem);
+		text-align: center;
+		animation: frame-in 0.4s ease 0.35s both;
+	}
+
+	#hex-panel.is-out .hex-hint {
+		display: none;
+	}
+
+	#intro-open {
+		appearance: none;
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 36px;
+		height: 36px;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: rgba(26, 18, 16, 0.08);
+		color: #1a1210;
+		font: 700 17px/1 ui-sans-serif, system-ui, sans-serif;
+		cursor: pointer;
+	}
+
+	#intro-open:hover,
+	#intro-open:focus-visible {
+		background: #d95926;
+		outline: none;
+	}
+
+	#intro {
+		z-index: 20;
+	}
+
+	.chart-card--intro {
+		width: min(560px, 100%);
+	}
+
+	.intro-lede {
+		margin: 0 0 1rem;
+		color: #cfd8dc;
+		font: 450 16px/1.5 ui-sans-serif, system-ui, sans-serif;
+		text-wrap: pretty;
+	}
+
+	.intro-steps {
+		display: grid;
+		gap: 0.6rem;
+		margin: 0 0 1rem;
+		padding: 0;
+		list-style: none;
+		counter-reset: step;
+	}
+
+	.intro-steps li {
+		display: grid;
+		grid-template-columns: 1.6rem 1fr;
+		gap: 0.65rem;
+		align-items: start;
+		color: #b3bfc6;
+		font: 450 14.5px/1.45 ui-sans-serif, system-ui, sans-serif;
+		counter-increment: step;
+	}
+
+	.intro-steps li::before {
+		content: counter(step);
+		display: grid;
+		place-items: center;
+		width: 1.6rem;
+		height: 1.6rem;
+		border-radius: 50%;
+		background: rgba(217, 89, 38, 0.2);
+		color: #ef8d58;
+		font: 650 13px/1 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.intro-steps b {
+		color: #e8edef;
+		font-weight: 600;
+	}
+
+	.intro-steps kbd,
+	.intro-x {
+		padding: 0.05rem 0.35rem;
+		border: 1px solid rgba(255, 255, 255, 0.18);
+		border-radius: 4px;
+		color: #e8edef;
+		font: 500 12px/1.4 ui-monospace, Menlo, Consolas, monospace;
+	}
+
+	.intro-terms {
+		display: grid;
+		gap: 0.7rem;
+		margin: 0 0 1.1rem;
+		padding: 0.85rem 1rem;
+		background: #192025;
+		border-radius: 12px;
+	}
+
+	.intro-terms dt {
+		color: #e8edef;
+		font: 600 13.5px/1.3 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.intro-terms dd {
+		margin: 0.2rem 0 0;
+		color: #9fadb5;
+		font: 450 13.5px/1.45 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.intro-more {
+		margin: 0 0 1rem;
+	}
+
+	.intro-more h3 {
+		margin: 0 0 0.4rem;
+		color: #e8edef;
+		font: 650 15px/1.3 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.intro-more p,
+	.intro-more li {
+		margin: 0 0 0.45rem;
+		color: #b3bfc6;
+		font: 450 14.5px/1.45 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.intro-more ul {
+		margin: 0 0 0.45rem;
+		padding-left: 1.15rem;
+	}
+
+	.intro-more li:last-child,
+	.intro-more p:last-child {
+		margin-bottom: 0;
+	}
+
+	.intro-source {
+		margin: 0 0 0.9rem;
+		font: 550 14.5px/1.4 ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.intro-source a {
+		color: #ef8d58;
+	}
+
+	.intro-source a:hover {
+		color: #ffb088;
+	}
+
+	.intro-go {
+		appearance: none;
+		width: 100%;
+		margin: 0;
+		padding: 0.75rem 1rem;
+		border: 0;
+		border-radius: 10px;
+		background: #d95926;
+		color: #fff;
+		font: 600 15px/1 ui-sans-serif, system-ui, sans-serif;
+		cursor: pointer;
+	}
+
+	.intro-go:hover,
+	.intro-go:focus-visible {
+		background: #ef6d36;
+		outline: none;
+	}
+
 	.chart-readout {
 		margin: 0 0 0.9rem;
 		max-width: 64ch;
@@ -1773,7 +2297,7 @@
 	}
 
 	/* pin drops in on every new location, then pings */
-	#globe .globe-pin svg {
+	#globe .pin-body {
 		transform-origin: 50% 100%;
 		animation: pin-drop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 	}
@@ -2191,6 +2715,7 @@
 
 	const vignette = document.getElementById("globe-vignette")!;
 	const nameEl = document.getElementById("location-name")!;
+	const csvButton = document.getElementById("csv-download") as HTMLButtonElement;
 	const resetBtn = document.getElementById("globe-reset") as HTMLButtonElement;
 	const hexPanel = document.getElementById("hex-panel")!;
 	const hexCells = [...hexPanel.querySelectorAll<HTMLElement>(".hex-cell")];
@@ -2249,6 +2774,11 @@
 	const askForm = document.getElementById("ask-form") as HTMLFormElement;
 	const askInput = document.getElementById("ask-input") as HTMLInputElement;
 	const askSend = document.getElementById("ask-send") as HTMLButtonElement;
+	const LOADING = "Loading fire records…";
+	const LOAD_FAILED = "Couldn't load fire records. Click the place again to retry.";
+	const introFrame = document.getElementById("intro")!;
+	const introCard = introFrame.querySelector<HTMLElement>(".chart-card")!;
+	const introOpen = document.getElementById("intro-open") as HTMLButtonElement;
 	let ringAbort: AbortController | null = null;
 	let askAbort: AbortController | null = null;
 	let askLat = NaN;
@@ -2300,6 +2830,7 @@
 	function enterFrame(frame: HTMLElement) {
 		leaving.get(frame)?.();
 		frame.hidden = false;
+		window.dispatchEvent(new CustomEvent("map:pane"));
 	}
 
 	function closeRingFrame() {
@@ -2367,7 +2898,7 @@
 		askLog.replaceChildren();
 		const intro = document.createElement("div");
 		intro.className = "ask-intro";
-		intro.innerHTML = `<span class="ask-avatar ask-avatar--lg" aria-hidden="true"></span><h3>Ask about this place</h3><p>Questions are answered from the fire record within 100 miles, the same archive behind the charts.</p>`;
+		intro.innerHTML = `<span class="ask-avatar ask-avatar--lg" aria-hidden="true"></span><h3>Ask about this place</h3><p>Type a question in plain English, or tap one below. Answers come from satellite fire records since 2000 within 100 miles of your pin.</p>`;
 		askLog.append(intro);
 		askSuggestions.hidden = false;
 	}
@@ -2485,7 +3016,7 @@
 		if (!ringSeries) {
 			ringLegend.replaceChildren();
 			ringReadout.replaceChildren();
-			ringHost.replaceChildren(ringHost.dataset.state === "error" ? "No record" : "…");
+			ringHost.replaceChildren(ringHost.dataset.state === "error" ? LOAD_FAILED : LOADING);
 			return;
 		}
 		ringTitle.textContent = nameEl.textContent || "Fire history";
@@ -2510,7 +3041,7 @@
 			calendarLegend.replaceChildren();
 			calendarTable.replaceChildren();
 			calendarReadout.replaceChildren();
-			calendarHost.replaceChildren(calendarHost.dataset.state === "error" ? "No record" : "…");
+			calendarHost.replaceChildren(calendarHost.dataset.state === "error" ? LOAD_FAILED : LOADING);
 			return;
 		}
 		calendarTitle.textContent = nameEl.textContent || "Fire history";
@@ -2534,7 +3065,7 @@
 		if (!ringSeries) {
 			raceLegend.replaceChildren();
 			raceReadout.replaceChildren();
-			raceHost.replaceChildren(raceHost.dataset.state === "error" ? "No record" : "…");
+			raceHost.replaceChildren(raceHost.dataset.state === "error" ? LOAD_FAILED : LOADING);
 			return;
 		}
 		raceTitle.textContent = nameEl.textContent || "Fire history";
@@ -2558,7 +3089,7 @@
 		if (!ringSeries) {
 			driftLegend.replaceChildren();
 			driftReadout.replaceChildren();
-			driftHost.replaceChildren(driftHost.dataset.state === "error" ? "No record" : "…");
+			driftHost.replaceChildren(driftHost.dataset.state === "error" ? LOAD_FAILED : LOADING);
 			return;
 		}
 		driftTitle.textContent = nameEl.textContent || "Fire history";
@@ -2583,7 +3114,7 @@
 			seamLegend.replaceChildren();
 			seamScatterLegend.replaceChildren();
 			seamReadout.replaceChildren();
-			const waiting = seamHost.dataset.state === "error" ? "No record" : "…";
+			const waiting = seamHost.dataset.state === "error" ? LOAD_FAILED : LOADING;
 			seamHost.replaceChildren(waiting);
 			seamScatter.replaceChildren(waiting);
 			return;
@@ -2616,6 +3147,40 @@
 		hexPanel.classList.remove("is-out");
 	}
 
+	function csvCell(value: string) {
+		if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+		return value;
+	}
+
+	function downloadCsv() {
+		if (!ringSeries) return;
+		const place = nameEl.textContent?.trim() || "Unnamed place";
+		const lines = ["year,iso_week,fire_days,in_archive,place,lat,lng,miles"];
+		for (const year of ringSeries.years) {
+			year.weeks.forEach((days, index) => {
+				lines.push(
+					[
+						String(year.year),
+						String(index + 1),
+						days == null ? "" : String(days),
+						days == null ? "no" : "yes",
+						csvCell(place),
+						ringSeries!.lat.toFixed(5),
+						ringSeries!.lng.toFixed(5),
+						String(ringSeries!.miles),
+					].join(","),
+				);
+			});
+		}
+		const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = `fire-calendar-${ringSeries.lat.toFixed(2)}-${ringSeries.lng.toFixed(2)}.csv`;
+		link.click();
+		URL.revokeObjectURL(url);
+	}
+
 	async function loadRings(lat: number, lng: number) {
 		if (askLat !== lat || askLng !== lng) {
 			askLat = lat;
@@ -2626,6 +3191,7 @@
 		const abort = new AbortController();
 		ringAbort = abort;
 		ringSeries = null;
+		csvButton.hidden = true;
 		ringHost.dataset.state = "loading";
 		calendarHost.dataset.state = "loading";
 		raceHost.dataset.state = "loading";
@@ -2643,6 +3209,7 @@
 			const series = (await res.json()) as RingSeries;
 			if (abort.signal.aborted) return;
 			ringSeries = series;
+			csvButton.hidden = false;
 			if (isOpen(ringFrame)) paintRings();
 			if (isOpen(calendarFrame)) paintCalendar();
 			if (isOpen(raceFrame)) paintRace();
@@ -2713,7 +3280,7 @@
 
 	watchStatus((next) => {
 		nameEl.textContent = next.text;
-		resetBtn.hidden = !next.showReset;
+		if (!next.showReset) csvButton.hidden = true;
 		if (isOpen(askFrame)) askTitle.textContent = next.text || "Fire history";
 	});
 
@@ -2727,6 +3294,8 @@
 		if (!Number.isFinite(detail?.lat) || !Number.isFinite(detail?.lng)) return;
 		void loadRings(detail.lat, detail.lng);
 	});
+
+	csvButton.addEventListener("click", downloadCsv);
 
 	ringButton.addEventListener("click", openRingFrame);
 	ringClose.addEventListener("click", closeRingFrame);
@@ -2778,9 +3347,39 @@
 		});
 	}
 
+	function openIntro() {
+		enterFrame(introFrame);
+		introCard.scrollTop = 0;
+		introFrame.querySelector<HTMLButtonElement>(".intro-go")!.focus({ preventScroll: true });
+		requestAnimationFrame(() => {
+			introCard.scrollTop = 0;
+		});
+	}
+
+	function closeIntro() {
+		leaveFrame(introFrame);
+	}
+
+	introOpen.addEventListener("click", openIntro);
+	for (const button of introFrame.querySelectorAll<HTMLButtonElement>(".intro-close, .intro-go")) {
+		button.addEventListener("click", closeIntro);
+	}
+	introFrame.addEventListener("click", (event) => {
+		if (!introCard.contains(event.target as Node)) closeIntro();
+	});
+	openIntro();
+
+	document.querySelector(".pin-cancel")!.addEventListener("click", (event) => {
+		event.stopPropagation();
+		requestReset();
+	});
 	resetBtn.addEventListener("click", requestReset);
 	window.addEventListener("keydown", (e) => {
 		if (e.key !== "Escape") return;
+		if (isOpen(introFrame)) {
+			closeIntro();
+			return;
+		}
 		if (isOpen(askFrame)) {
 			closeAskFrame();
 			return;
