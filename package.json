@@ -2,9 +2,10 @@
   "name": "dimensional-debris",
   "version": "0.0.1",
   "dependencies": {
-    "@astrojs/node": "^11.1.13",
+    "@astrojs/vercel": "^11.0.22",
     "astro": "^7.4.12",
-    "mapbox-gl": "^3.35.0"
+    "mapbox-gl": "^3.35.0",
+    "pg": "^8.23.1"
   },
   "engines": {
     "node": ">=22.23.4"
@@ -13,7 +14,6 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "start": "node ./dist/server/entry.mjs",
     "astro": "astro"
   },
   "type": "module"

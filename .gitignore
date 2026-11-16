@@ -1,5 +1,6 @@
 # build output
 dist/
+.vercel/
 # generated types
 .astro/
 
@@ -29,3 +30,4 @@ datasets/*/*.zip
 scripts/__pycache__/
 
 data/*
+.vercel

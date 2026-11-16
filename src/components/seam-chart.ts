@@ -183,11 +183,11 @@ function drawScatter(host: HTMLElement, series: RingSeries, tip: HTMLElement, le
 	const fx1 = xOf(xMax);
 	const fy0 = top + plot - ((clampLog(Math.log10(yAt(xMin))) - lo) / (hi - lo)) * plot;
 	const fy1 = top + plot - ((clampLog(Math.log10(yAt(xMax))) - lo) / (hi - lo)) * plot;
-	el(svg, "path", { d: `M${fx0} ${fy0}L${fx1} ${fy1}`, class: "seam-fit" });
+	el(svg, "path", { d: `M${fx0} ${fy0}L${fx1} ${fy1}`, class: "seam-fit", pathLength: 1 });
 
 	const dots = el(svg, "g", {});
 	for (const point of points) {
-		el(dots, "circle", { cx: xOf(point.before), cy: yOf(point.after), r: 3.2, class: "seam-pt" });
+		el(dots, "circle", { cx: xOf(point.before), cy: yOf(point.after), r: 3.2, class: "seam-pt", style: `--i:${point.week}` });
 	}
 	const ring = el(svg, "circle", { r: 6, class: "seam-ring", visibility: "hidden" });
 	const hits = el(svg, "g", {});
@@ -371,13 +371,13 @@ export function drawSeam(
 
 	for (const segment of segments) {
 		const line = segment.map((row, i) => `${i ? "L" : "M"}${xOf(row.year).toFixed(1)} ${yOf(row.total).toFixed(1)}`).join("");
-		el(svg, "path", { d: line, class: "seam-line" });
+		el(svg, "path", { d: line, class: "seam-line", pathLength: 1 });
 	}
 
 	const guide = el(svg, "line", { y1: top, y2: base, class: "seam-guide", visibility: "hidden" });
-	for (const row of rows) {
-		if (row.total > 0) el(svg, "circle", { cx: xOf(row.year), cy: yOf(row.total), r: 3, class: "seam-dot" });
-	}
+	rows.forEach((row, i) => {
+		if (row.total > 0) el(svg, "circle", { cx: xOf(row.year), cy: yOf(row.total), r: 3, class: "seam-dot", style: `--i:${i}` });
+	});
 	const ring = el(svg, "circle", { r: 6, class: "seam-ring", visibility: "hidden" });
 
 	const satTop = base + 32;
@@ -386,7 +386,7 @@ export function drawSeam(
 		const y = satTop + i * satGap;
 		const x0 = xOf(Math.max(domainStart, sat.start));
 		const x1 = xOf(domainEnd);
-		el(svg, "rect", { x: x0, y: y - 3, width: Math.max(1, x1 - x0), height: 6, rx: 3, class: `seam-sat ${sat.kind}` });
+		el(svg, "rect", { x: x0, y: y - 3, width: Math.max(1, x1 - x0), height: 6, rx: 3, class: `seam-sat ${sat.kind}`, style: `--i:${i}` });
 		text(svg, sat.name, { x: left - 8, y: y + 3.5, class: "seam-sat-label", "text-anchor": "end" });
 	});
 

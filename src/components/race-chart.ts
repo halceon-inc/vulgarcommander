@@ -233,7 +233,9 @@ export function drawRace(host: HTMLElement, series: RingSeries, tip: HTMLElement
 		for (let week = 0; week < count; week++) {
 			d += `${week ? "L" : "M"}${xOf(weekDay(week)).toFixed(1)} ${yOf(values[week]).toFixed(1)}`;
 		}
-		return el(svg, "path", { d, class: `race-line ${name}` });
+		const path = el(svg, "path", { d, class: `race-line ${name}` });
+		if (name !== "med") path.setAttribute("pathLength", "1");
+		return path;
 	}
 
 	if (history.length) {

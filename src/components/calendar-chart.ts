@@ -166,7 +166,8 @@ export function drawCalendar(
 			y: top - 6 - bar,
 			width: Math.max(0.5, cellW - gap),
 			height: bar,
-			class: "cal-bar",
+			class: "cal-bar cal-clim",
+			style: `--d:${(week * 0.008).toFixed(3)}s`,
 		});
 	}
 	text(svg, "typical", { x: left - 8, y: top - 8, class: "cal-label", "text-anchor": "end", "font-size": 11 });
@@ -216,6 +217,7 @@ export function drawCalendar(
 				rx: 1.5,
 				"data-i": i,
 				"data-w": week,
+				style: `--d:${(i * 0.018 + week * 0.006).toFixed(3)}s`,
 			});
 			if (value == null) {
 				rect.setAttribute("class", "cal-pending");
@@ -241,6 +243,7 @@ export function drawCalendar(
 			class: "cal-bar",
 			"data-i": i,
 			"data-bar": 1,
+			style: `--d:${(0.2 + i * 0.02).toFixed(3)}s`,
 		});
 		if (topYears.includes(year)) {
 			text(svg, fmt(totals[i]), {

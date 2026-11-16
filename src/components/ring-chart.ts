@@ -162,6 +162,7 @@ export function drawRingChart(host: HTMLElement, series: RingSeries, tip: HTMLEl
 				),
 				"data-i": i,
 				"data-w": week,
+				style: `--d:${(i * 0.028 + week * 0.005).toFixed(3)}s`,
 			});
 			if (value == null) path.setAttribute("class", "ring-pending");
 			else if (value === 0) path.setAttribute("class", "ring-zero");

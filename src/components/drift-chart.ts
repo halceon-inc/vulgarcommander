@@ -192,6 +192,8 @@ export function drawDrift(host: HTMLElement, series: RingSeries, tip: HTMLElemen
 			height: 3,
 			rx: 1.5,
 			fill: color,
+			class: "drift-bar",
+			style: `--i:${i}`,
 		});
 		el(marks, "rect", {
 			x: xOf(row.q25),
@@ -200,8 +202,10 @@ export function drawDrift(host: HTMLElement, series: RingSeries, tip: HTMLElemen
 			height: 9,
 			rx: 2,
 			fill: color,
+			class: "drift-bar",
+			style: `--i:${i}`,
 		});
-		el(marks, "line", { x1: xOf(row.q50), x2: xOf(row.q50), y1: y - 5.5, y2: y + 5.5, class: "drift-tick" });
+		el(marks, "line", { x1: xOf(row.q50), x2: xOf(row.q50), y1: y - 5.5, y2: y + 5.5, class: "drift-tick", style: `--i:${i}` });
 		el(marks, "rect", {
 			x: left,
 			y: top + i * rowH,

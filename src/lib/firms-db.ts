@@ -1,5 +1,5 @@
-import path from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import pg from "pg";
+import { MOTHERDUCK_HOST, MOTHERDUCK_TOKEN } from "astro:env/server";
 
 const FIRST_YEAR = 2000;
 const LAST_YEAR = 2026;
@@ -28,13 +28,23 @@ type CellWeek = {
 	days: number;
 };
 
-let database: DatabaseSync | null = null;
+let pool: pg.Pool | null = null;
 
-function openDatabase() {
-	if (database) return database;
-	const file = process.env.FIRMS_DB ?? path.join(process.cwd(), "data", "firms.sqlite");
-	database = new DatabaseSync(file, { readOnly: true });
-	return database;
+function database() {
+	if (pool) return pool;
+	const token = MOTHERDUCK_TOKEN || process.env.MOTHERDUCK_TOKEN;
+	const host = MOTHERDUCK_HOST || process.env.MOTHERDUCK_HOST || "pg.us-west-2-aws.motherduck.com";
+	if (!token) throw new Error("MOTHERDUCK_TOKEN is not set");
+	pool = new pg.Pool({
+		host,
+		port: 5432,
+		user: "postgres",
+		password: token,
+		database: "firms",
+		ssl: { rejectUnauthorized: true },
+		max: 1,
+	});
+	return pool;
 }
 
 function weekValue(year: number, week: number, found: number | undefined): number | null {
@@ -59,7 +69,17 @@ function lngSpans(lo: number, hi: number): [number, number][] {
 	return [[Math.max(-1800, lo), 1799], [-1800, hi - 3600]];
 }
 
-export function ringSeries(lat: number, lng: number): RingSeries {
+function cell(row: Record<string, unknown>): CellWeek {
+	return {
+		lat: Number(row.lat),
+		lng: Number(row.lng),
+		year: Number(row.year),
+		week: Number(row.week),
+		days: Number(row.days),
+	};
+}
+
+export async function ringSeries(lat: number, lng: number): Promise<RingSeries> {
 	const years: RingYear[] = [];
 	let maxWeek = 0;
 	let maxTotal = 0;
@@ -76,13 +96,15 @@ export function ringSeries(lat: number, lng: number): RingSeries {
 	const lngLo = Math.floor((lng - dLng) * 10) - 1;
 	const lngHi = Math.floor((lng + dLng) * 10) + 1;
 
-	const db = openDatabase();
-	const query = db.prepare(
-		"SELECT lat, lng, year, week, days FROM cell_week WHERE lat BETWEEN ? AND ? AND lng BETWEEN ? AND ?",
-	);
+	const query = database();
 	const rows: CellWeek[] = [];
 	for (const [lo, hi] of lngSpans(lngLo, lngHi)) {
-		if (lo <= hi) rows.push(...(query.all(latLo, latHi, lo, hi) as CellWeek[]));
+		if (lo > hi) continue;
+		const result = await query.query(
+			"SELECT lat, lng, year, week, days FROM cell_week WHERE lat BETWEEN $1 AND $2 AND lng BETWEEN $3 AND $4",
+			[latLo, latHi, lo, hi],
+		);
+		rows.push(...result.rows.map((row) => cell(row)));
 	}
 
 	const byYear = new Map<number, Map<number, number>>();

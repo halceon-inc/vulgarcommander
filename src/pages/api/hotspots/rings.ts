@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { ringSeries } from "../../../lib/firms-db";
 
-export const GET: APIRoute = ({ url }) => {
+export const GET: APIRoute = async ({ url }) => {
 	const lat = Number(url.searchParams.get("lat"));
 	const lng = Number(url.searchParams.get("lng"));
 	if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
@@ -9,7 +9,7 @@ export const GET: APIRoute = ({ url }) => {
 	}
 
 	try {
-		return Response.json(ringSeries(lat, lng));
+		return Response.json(await ringSeries(lat, lng));
 	} catch (err) {
 		console.error("[rings]", err);
 		return Response.json({ error: "fire record unavailable" }, { status: 503 });

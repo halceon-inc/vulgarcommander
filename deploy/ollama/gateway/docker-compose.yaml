@@ -1,0 +1,8 @@
+# LAN machine that receives the router port forward, then relays to the AI machine.
+services:
+  relay:
+    image: alpine/socat
+    restart: unless-stopped
+    command: TCP-LISTEN:11434,fork,reuseaddr TCP:${OLLAMA_HOST:?set OLLAMA_HOST}:11434
+    ports:
+      - "${FORWARD_PORT:-11434}:11434"

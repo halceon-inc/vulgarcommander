@@ -1,0 +1,15 @@
+[Unit]
+Description=Ollama API key proxy
+After=network-online.target ollama.service
+Wants=ollama.service
+
+[Service]
+User=sushant
+Group=sushant
+EnvironmentFile=/home/sushant/dev/vulgarcommander/deploy/ollama/ai/.env
+ExecStart=/usr/bin/python3 /home/sushant/dev/vulgarcommander/deploy/ollama/ai/auth-proxy.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
