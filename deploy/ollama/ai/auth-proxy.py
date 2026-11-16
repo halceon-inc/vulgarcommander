@@ -38,12 +38,14 @@ def authorized(raw: bytes) -> bool:
 def rewrite_host(raw: bytes) -> bytes:
 	header, _, rest = raw.partition(b"\r\n\r\n")
 	lines = header.decode("iso-8859-1").split("\r\n")
-	kept = [line for line in lines if not line.lower().startswith("host:")]
+	drop = ("host:", "connection:", "origin:")
+	kept = [line for line in lines if not line.lower().startswith(drop)]
 	kept.append(f"Host: {UPSTREAM_HOST}:{UPSTREAM_PORT}")
+	kept.append("Connection: close")
 	return ("\r\n".join(kept) + "\r\n\r\n").encode("iso-8859-1") + rest
 
 
-async def pipe(src: asyncio.StreamReader, dst: asyncio.StreamWriter) -> None:
+async def pipe_request(src: asyncio.StreamReader, dst: asyncio.StreamWriter) -> None:
 	try:
 		while True:
 			chunk = await src.read(65536)
@@ -54,8 +56,21 @@ async def pipe(src: asyncio.StreamReader, dst: asyncio.StreamWriter) -> None:
 	except (ConnectionError, asyncio.IncompleteReadError):
 		pass
 	try:
-		dst.close()
+		if dst.can_write_eof():
+			dst.write_eof()
 	except Exception:
+		pass
+
+
+async def pipe_response(src: asyncio.StreamReader, dst: asyncio.StreamWriter) -> None:
+	try:
+		while True:
+			chunk = await src.read(65536)
+			if not chunk:
+				break
+			dst.write(chunk)
+			await dst.drain()
+	except (ConnectionError, asyncio.IncompleteReadError):
 		pass
 
 
@@ -79,7 +94,10 @@ async def handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> 
 		upstream_reader, upstream_writer = await asyncio.open_connection(UPSTREAM_HOST, UPSTREAM_PORT)
 		upstream_writer.write(rewrite_host(raw))
 		await upstream_writer.drain()
-		await asyncio.gather(pipe(reader, upstream_writer), pipe(upstream_reader, writer))
+		await asyncio.gather(
+			pipe_request(reader, upstream_writer),
+			pipe_response(upstream_reader, writer),
+		)
 	except Exception:
 		pass
 	finally:
